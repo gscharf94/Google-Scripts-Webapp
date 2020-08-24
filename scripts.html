@@ -1,0 +1,18 @@
+<script>
+	function folderChange(outputHTML) {
+		document.getElementById('fileList').innerHTML = outputHTML;
+	}
+
+	function getFolderName() {
+		return document.getElementById('folderDropdown').value;
+	}
+
+	function selectFolder(folderName) {
+		document.getElementById('currentFolderLabel').innerHTML = `Current Folder: ${folderName}`;
+		google.script.run.withSuccessHandler(folderChange).dropdownSelection(folderName);
+	}
+
+	function selectFile() {
+
+	}s
+</script>

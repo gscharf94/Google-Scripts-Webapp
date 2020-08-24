@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base target="_top">
+		<?!= include('styles'); ?>
+	</head>
+	<body>
+		<form>
+			<label for="folderDropdown">Select a folder:</label>
+			<select onchange="google.script.run.withSuccessHandler(folderChange).dropdownSelection(getFolderName())" id="folderDropdown" name="folderDropdown">
+				<?
+					let html = "";
+					let folders = getInitialFolders();
+					folders.forEach(
+						(folder) => {
+							html += `<option value="${folder}">${folder}</option>`;
+						}
+					);
+				?>
+
+				<?!= html; ?>
+			</select>
+		</form>
+		<h1 id="currentFolderLabel">Current Folder: </h1>
+		<ul id="fileList">
+			<p>This says one thing...</p>
+		</ul>
+		<?!= include('scripts'); ?>
+	</body>
+</html>
