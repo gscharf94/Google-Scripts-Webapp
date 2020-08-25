@@ -1,18 +1,59 @@
 <script>
-	function folderChange(outputHTML) {
-		document.getElementById('fileList').innerHTML = outputHTML;
+
+	function folderForward(output) {
+		document.getElementById('fileList').innerHTML = output['html'];
+		document.getElementById('currentFolderLabel').innerHTML += `/${output['name']}`;
 	}
 
-	function getFolderName() {
-		return document.getElementById('folderDropdown').value;
+	function folderForwardAction(folderName) {
+		google.script.run.withSuccessHandler(folderForward).dropdownSelection(folderName);
 	}
 
-	function selectFolder(folderName) {
-		document.getElementById('currentFolderLabel').innerHTML = `Current Folder: ${folderName}`;
-		google.script.run.withSuccessHandler(folderChange).dropdownSelection(folderName);
+	function goUpFolderAction() {
+		let path = document.getElementById('currentFolderLabel').innerHTML;
+		let ind = path.indexOf('/');
+		while (ind != -1) {
+			path = path.slice(ind+1, path.length);
+			ind = path.indexOf('/');
+		}
+
+		google.script.run.withSuccessHandler(goUpFolder).getParentInfo(path);
 	}
 
-	function selectFile() {
+	function goUpFolder(output) {
+		document.getElementById('fileList').innerHTML = output['html'];
+		let lab = document.getElementById('currentFolderLabel').innerHTML;
+		lab = lab.slice(0,-(output['name'].length+1));
+		document.getElementById('currentFolderLabel').innerHTML = lab;
+	}
 
+	function fileSelectionAction(fileName, folderName, fileID) {
+		let newLabel = `You have selected: ${folderName}/${fileName}`;
+		document.getElementById('currentFolderLabel').innerHTML = newLabel;
+		let newHTML = '';
+		newHTML += `<li><button id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button></li>`;
+		newHTML += `<li><button id="callResultsButton" onclick="callResultsAction('${fileID}')">Process call results</button></li>`;
+		newHTML += `<li><button id="resetButton" onclick="resetButtonAction()">Reset</button></li>`;
+		document.getElementById('fileList').innerHTML = newHTML;
+	}
+
+	function callerDetailsAction(fileID, fileName) {
+		google.script.run.withSuccessHandler(callerDetailsFinish).callerDetailsStart(fileID, fileName);
+	}
+
+	function callerDetailsFinish(output) {
+		document.getElementById('emptyThing').innerHTML = output;
+	}
+
+	function callResultsAction(fileID) {
+
+	}
+
+	function resetButtonAction() {
+		google.script.run.withSuccessHandler(resetButton).test();
+	}
+
+	function resetButton(output) {
+		document.getElementById('currentFolderLabel').innerHTML = output;
 	}
 </script>

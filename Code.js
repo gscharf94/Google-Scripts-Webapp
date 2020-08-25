@@ -4,47 +4,62 @@ function doGet() {
 		.evaluate();
 }
 
-function getInitialFolders() {
-	let output = [];
+function getRootInfo() {
 	let rootFolder = DriveApp.getRootFolder();
-	let folders = rootFolder.getFolders();
-	while (folders.hasNext()) {
-		output.push(folders.next());
+	let folderIterator = rootFolder.getFolders();
+	let folders = [];
+	while (folderIterator.hasNext()) {
+		folders.push(folderIterator.next());
 	}
-	// return formatListAsHTML(output);
-	return output;
+	let fileIterator = rootFolder.getFiles();
+	let files = [];
+	while (fileIterator.hasNext()) {
+		files.push(fileIterator.next());
+	}
+	return {'folders':folders, 'files':files};
 }
 
-
-function formatListAsHTML(list) {
-	let output = '<p>';
-	list.forEach(
-		(val) => {
-			output += `${val}<br>`;
-		}
-	);
-	output += '</p>';
-	return output;
-}
 
 function dropdownSelection(folderName) {
 	let folder = DriveApp.getFoldersByName(folderName).next();
 	let folders = folder.getFolders();
 	let files = folder.getFiles();
+	let html = "";
+	while (folders.hasNext()) {
+		let folder = folders.next();
+		html += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
+	}
+	while (files.hasNext()) {
+		let file = files.next();
+		if (`${file}`.slice(-3) == 'csv') {
+			html += `<li class="fileLink" onclick="fileSelectionAction('${file}','${folderName}','${file.getId()}')">${file}</li>`;
+		}
+	}
+	return {'name':folderName, 'html':html};
+}
+
+function getParentInfo(folderName) {
+	let parentFolder = DriveApp.getFoldersByName(folderName).next().getParents().next();
+
+	let folders = parentFolder.getFolders();
+	let files = parentFolder.getFiles();
 
 	let html = "";
 	while (folders.hasNext()) {
 		let folder = folders.next();
-		html += `<li class="folderLink" onclick="selectFolder('${folder}')">${folder}</li>`;
+		html += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
 	}
 	while (files.hasNext()) {
-		html += `<li>${files.next()}</li>`;
+		let file = files.next();
+		if (`${file}`.slice(-3) == 'csv') {
+			html += `<li class="fileLink" onclick="fileSelectionAction('${file}', '${parentFolder.getName()}', '${file.getId()}')">${file}</li>`;
+		}
 	}
-
-	return html;
+	return {'name':folderName, 'html':html};
 }
 
 function include(filename) {
-	return HtmlService.createHtmlOutputFromFile(filename)
+	return HtmlService
+		.createHtmlOutputFromFile(filename)
 		.getContent();
 }
