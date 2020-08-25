@@ -50,10 +50,26 @@
 	}
 
 	function resetButtonAction() {
-		google.script.run.withSuccessHandler(resetButton).test();
+		google.script.run.withSuccessHandler(resetButton).getRootInfo();
 	}
 
 	function resetButton(output) {
-		document.getElementById('currentFolderLabel').innerHTML = output;
+		document.getElementById('currentFolderLabel').innerHTML = 'My Drive';
+		document.getElementById('emptyThing').innerHTML = "";
+
+		let listHTML = "";
+		
+		output['folders'].forEach( (folder) => {
+			listHTML += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
+		});
+
+		output['files'].forEach( (file) => {
+			if(`${file}`.slice(-3) == 'csv') {
+				listHTML += `<li class="fileLink" onclick="fileSelectionAction('${file}','root','${file.getId()}')">${file}</li>`;
+			}
+		});
+
+		document.getElementById('fileList').innerHTML = listHTML;
+		
 	}
 </script>
