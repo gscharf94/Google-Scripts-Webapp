@@ -31,9 +31,9 @@
 		let newLabel = `<b>${folderName}/${fileName}</b>`;
 		document.getElementById('currentFolderLabel').innerHTML = newLabel;
 		let newHTML = '';
-		newHTML += `<li><button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button></li>`;
-		newHTML += `<li><button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}')">Process call results</button></li>`;
-		newHTML += `<li><button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button></li>`;
+		newHTML += `<button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button>`;
+		newHTML += `<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}')">Process call results</button><br>`;
+		newHTML += `<button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
 		document.getElementById('arrowContainer').style.display = 'none';
