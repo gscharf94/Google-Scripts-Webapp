@@ -6,10 +6,16 @@ html {
 
 ul {
 	list-style-type: none;
+	/* background-color: rgb(228, 228, 228); */
+	/* width: 80%; */
+}
+
+#listContainer {
+	justify-items: center;
 }
 
 li {
-	margin: 5px;
+	margin: 2.5px;
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -28,6 +34,62 @@ li:hover {
 	cursor: pointer;
 	text-decoration: underline;
 	color: blue;
+}
+
+#topRowContainer {
+	display: flex;
+	align-items: flex-end;
+	/* background-color: lightgray; */
+}
+
+.fileLink {
+	color: blue;
+	font-weight: 500;
+	font-size: 2ch;
+}
+
+.arrow {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 4px;
+  /* margin-top: 5px; */
+  margin-left: 10px;
+  margin-right: 10px;
+  /* margin-bottom: 8px; */
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+  cursor: pointer;
+}
+
+.lds-dual-ring {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid rgb(0, 0, 0);
+  border-color: #000 transparent #000 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingContainer {
+	display: flex;
+	align-items: center;
 }
 
 </style>

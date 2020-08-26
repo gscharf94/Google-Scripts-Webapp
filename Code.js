@@ -16,7 +16,20 @@ function getRootInfo() {
 	while (fileIterator.hasNext()) {
 		files.push(fileIterator.next());
 	}
-	return {'folders':folders, 'files':files};
+
+	let html = "";
+		
+	folders.forEach( (folder) => {
+		html += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
+	});
+
+	files.forEach( (file) => {
+		if(`${file}`.slice(-3) == 'csv') {
+			html += `<li class="fileLink" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
+		}
+	});
+
+	return { 'folders':folders, 'files':files, 'html':html };
 }
 
 

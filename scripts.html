@@ -28,21 +28,24 @@
 	}
 
 	function fileSelectionAction(fileName, folderName, fileID) {
-		let newLabel = `You have selected: ${folderName}/${fileName}`;
+		let newLabel = `<b>${folderName}/${fileName}</b>`;
 		document.getElementById('currentFolderLabel').innerHTML = newLabel;
 		let newHTML = '';
-		newHTML += `<li><button id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button></li>`;
-		newHTML += `<li><button id="callResultsButton" onclick="callResultsAction('${fileID}')">Process call results</button></li>`;
-		newHTML += `<li><button id="resetButton" onclick="resetButtonAction()">Reset</button></li>`;
+		newHTML += `<li><button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button></li>`;
+		newHTML += `<li><button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}')">Process call results</button></li>`;
+		newHTML += `<li><button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button></li>`;
 		document.getElementById('fileList').innerHTML = newHTML;
+
+		document.getElementById('arrowContainer').style.display = 'none';
 	}
 
 	function callerDetailsAction(fileID, fileName) {
+		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(callerDetailsFinish).callerDetailsStart(fileID, fileName);
 	}
 
 	function callerDetailsFinish(output) {
-		document.getElementById('emptyThing').innerHTML = output;
+		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated sheet..</h2></a>`;
 	}
 
 	function callResultsAction(fileID) {
@@ -56,20 +59,8 @@
 	function resetButton(output) {
 		document.getElementById('currentFolderLabel').innerHTML = 'My Drive';
 		document.getElementById('emptyThing').innerHTML = "";
-
-		let listHTML = "";
-		
-		output['folders'].forEach( (folder) => {
-			listHTML += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
-		});
-
-		output['files'].forEach( (file) => {
-			if(`${file}`.slice(-3) == 'csv') {
-				listHTML += `<li class="fileLink" onclick="fileSelectionAction('${file}','root','${file.getId()}')">${file}</li>`;
-			}
-		});
-
-		document.getElementById('fileList').innerHTML = listHTML;
+		document.getElementById('fileList').innerHTML = output['html'];
+		document.getElementById('arrowContainer').style.display = 'inline';
 		
 	}
 </script>

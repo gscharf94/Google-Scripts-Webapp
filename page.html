@@ -1,41 +1,47 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 		<base target="_top">
 		<?!= include('styles'); ?>
 	</head>
 	<body>
 		<p>Note: Click once and wait for Google to load the files. Clicking too fast may cause unexpected behavior.</p>
-		<h1 id="currentFolderLabel">My Drive</h1>
-		<h4 id="parentDirectory" onclick="goUpFolderAction()"><- Back</h4>
-		<ul id="fileList">
-			<?
-
-				let listHTML = "";
-				let data = getRootInfo();
-
-				data['folders'].forEach(
-					(folder) => {
-						listHTML += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
-					}
-				);
-
-				data['files'].forEach( 
-					(file) => {
-						if(`${file}`.slice(-3) == 'csv') {
-							listHTML += `<li class="fileLink" onclick="fileSelectionAction('${file}','root','${file.getId()}')">${file}</li>`;
+		<div id="topRowContainer">
+			<!-- <h4 id="parentDirectory" onclick="goUpFolderAction()"><-</h4> -->
+			<p id="arrowContainer"><i class="arrow" onclick="goUpFolderAction()"></i></p>
+			<h2 id="currentFolderLabel">My Drive</h1>
+		</div>
+		<div class="listContainer">
+			<ul id="fileList">
+				<?
+	
+					let listHTML = "";
+					let data = getRootInfo();
+	
+					data['folders'].forEach(
+						(folder) => {
+							listHTML += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
 						}
-					}
-				);
-			?>
-			<?!= listHTML ?>
-		</ul>
+					);
+	
+					data['files'].forEach( 
+						(file) => {
+							if(`${file}`.slice(-3) == 'csv') {
+								listHTML += `<li class="fileLink" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
+							}
+						}
+					);
+				?>
+				<?!= listHTML ?>
+			</ul>
+		</div>
 
-		<p id="emptyThing">
-
-		</p>
-
+	<p id="emptyThing"></p>
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 		<?!= include('scripts'); ?>
 	</body>
 </html>
