@@ -71,6 +71,20 @@ function getParentInfo(folderName) {
 	return {'name':folderName, 'html':html};
 }
 
+function getUserInfo() {
+	let data = Drive.About.get();
+	let name = data['user']['displayName'];
+	let imageURL = data['user']['picture']['url'];
+
+	let output = {
+		'email':Session.getActiveUser().getEmail(),
+		'name': name,
+		'imageURL':imageURL,
+	};
+	return output;
+
+}
+
 function include(filename) {
 	return HtmlService
 		.createHtmlOutputFromFile(filename)

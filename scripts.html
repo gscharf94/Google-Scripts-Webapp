@@ -63,4 +63,16 @@
 		document.getElementById('arrowContainer').style.display = 'inline';
 		
 	}
+
+	function setUserInfo(output) {
+		let name = output['name'];
+		let email = output['email'];
+		let imgURL = output['imageURL'];
+		document.getElementById('userInfo').innerHTML = `Logged in as:<br> <img id="profilePic" src="${imgURL}"></img>${name}, ${email}`;
+	}
+
+	function getUserInfoAction() {
+		google.script.run.withSuccessHandler(setUserInfo).getUserInfo();
+	}
+
 </script>
