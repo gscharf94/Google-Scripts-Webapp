@@ -32,7 +32,7 @@
 		document.getElementById('currentFolderLabel').innerHTML = newLabel;
 		let newHTML = '';
 		newHTML += `<button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button>`;
-		newHTML += `<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}')">Process call results</button><br>`;
+		newHTML += `<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}','${fileName}')">Process call results</button><br>`;
 		newHTML += `<button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
@@ -43,13 +43,14 @@
 		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(callerDetailsFinish).callerDetailsStart(fileID, fileName);
 	}
-
+	
 	function callerDetailsFinish(output) {
 		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated sheet..</h2></a>`;
 	}
-
-	function callResultsAction(fileID) {
-
+	
+	function callResultsAction(fileID, fileName) {
+		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
+		google.script.run.withSuccessHandler(callerDetailsFinish).callResultsStart(fileID, fileName);
 	}
 
 	function resetButtonAction() {
