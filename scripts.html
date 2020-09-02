@@ -41,11 +41,12 @@
 	}
 
 	function thruTextAction(fileID, fileName) {
+		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(thruTextFinish).startThruText(fileID, fileName);
 	}
 
 	function thruTextFinish(output) {
-		document.getElementById('emptyThing').innerHTML = `${output}`;
+		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated sheet..</h2></a>`;
 	}
 
 	function callerDetailsAction(fileID, fileName) {

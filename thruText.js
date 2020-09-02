@@ -17,6 +17,7 @@ function startThruText(fileID, fileName) {
 
 
 	writeOverviewSheet(ssID, sortedData[0], incs, sortedData[2]);
+	return SpreadsheetApp.openById(ssID).getUrl();
 	
 	// let out = sortedData[0];
 	// let calls = sortedData[2];
