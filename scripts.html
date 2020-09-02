@@ -33,10 +33,19 @@
 		let newHTML = '';
 		newHTML += `<button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button>`;
 		newHTML += `<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}','${fileName}')">Process call results</button><br>`;
+		newHTML += `<button class="btn btn-secondary" id="thruTextButton" onclick="thruTextAction('${fileID}','${fileName}')">Process ThruText</button><br>`;
 		newHTML += `<button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
 		document.getElementById('arrowContainer').style.display = 'none';
+	}
+
+	function thruTextAction(fileID, fileName) {
+		google.script.run.withSuccessHandler(thruTextFinish).startThruText(fileID, fileName);
+	}
+
+	function thruTextFinish(output) {
+		document.getElementById('emptyThing').innerHTML = `${output}`;
 	}
 
 	function callerDetailsAction(fileID, fileName) {

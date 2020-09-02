@@ -12,7 +12,6 @@ function callResultsStart(fileID, fileName) {
 	createOverviewSheet(ssID, data, timeInfo);
 
 	return SpreadsheetApp.openById(ssID).getUrl();
-
 }
 
 function createIndividualSheets(ssID, data) {

@@ -128,6 +128,7 @@ function setupOverviewSheet(sheetID, sortedData) {
 	let ss = SpreadsheetApp.openById(sheetID);
 	let sheet = ss.getSheets()[0];
 	sheet.setHiddenGridlines(true);
+	sheet.setName('Overview');
 
 	let topRow = ['Login','Name','Email','Wrap Up','Not Ready','Call','Ready','Total'];
 
