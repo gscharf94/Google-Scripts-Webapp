@@ -35,7 +35,7 @@ function parseCSV(rawText) {
 	let split = rawText.split("\n");
 	let output = [];
 	split.forEach( (row) => {
-		let splitRow = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+		let splitRow = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 		output.push(splitRow);
 	});
 	return output;
