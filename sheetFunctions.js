@@ -35,16 +35,16 @@ function parseCSV(rawText) {
 	let split = rawText.split("\n");
 	let output = [];
 	split.forEach( (row) => {
-		let splitRow = row.split(",");
+		let splitRow = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
 		output.push(splitRow);
 	});
 	return output;
 }
 
-function addRange(sheetID, arr, row, col, sheetName, type="2d") {
+function addRange(ssID, arr, row, col, sheetName, type="2d") {
 	// adds arr to a range that anchored to row, col on top left
 	// and then returns that range object
-	let ss = SpreadsheetApp.openById(sheetID);
+	let ss = SpreadsheetApp.openById(ssID);
 	let sheet = ss.getSheetByName(sheetName);
 	
 	if (type == "2d") {
