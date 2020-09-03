@@ -223,13 +223,18 @@ function writeCallsSheet(ssID, calls) {
 function writeIncomingSheets(ssID, incs) {
 	let ss = SpreadsheetApp.openById(ssID);
 	
-	let topRow = ["Contact Name", "Message", "Contact ID", "Convo Phone","Contact Phone"]
-	incs[0].unshift(topRow)
-	incs[1].unshift(topRow)
-	incs[2].unshift(topRow)
+	let topRow = ["Contact Name", "Message", "Contact ID", "Convo Phone","Contact Phone"];
+	incs[0].unshift(topRow);
+	incs[1].unshift(topRow);
+	incs[2].unshift(topRow);
+	incs[3].unshift(topRow);
+
+	ss.insertSheet('TBS');
+	let sheet = ss.getSheetByName('TBS');
+	let miscRange = addRange(ssID, incs[3], 1, 1, 'TBS');
 	
 	ss.insertSheet('OPT OUT');
-	let sheet = ss.getSheetByName('OPT OUT');
+	sheet = ss.getSheetByName('OPT OUT');
 	let stopRange = addRange(ssID, incs[0], 1, 1, 'OPT OUT');
 
 	ss.insertSheet('WRONG NUMBER');
@@ -240,12 +245,12 @@ function writeIncomingSheets(ssID, incs) {
 	sheet = ss.getSheetByName('TRUMP SUPPORTER');
 	let trumpRange = addRange(ssID, incs[2], 1, 1, 'TRUMP SUPPORTER');
 
-	return [stopRange, wrongNumRange, trumpRange];
+	return [stopRange, wrongNumRange, trumpRange, miscRange];
 }
 
 function formatIncomingSheets(ssID, ranges, incs) {
 	let ss = SpreadsheetApp.openById(ssID);
-	let sheetNames = ['OPT OUT','WRONG NUMBER','TRUMP SUPPORTER'];
+	let sheetNames = ['OPT OUT','WRONG NUMBER','TRUMP SUPPORTER', 'TBS'];
 	ranges.forEach( (range, ind) =>{
 		let data = incs[ind];
 		let sheet = ss.getSheetByName(sheetNames[ind]);
@@ -338,6 +343,7 @@ function splitIncoming(incs) {
 	let stops = [];
 	let wrongNum = [];
 	let trump = [];
+	let misc = [];
 	for (const person in incs) {
 		let msgs = incs[person]['messages'];
 		let mergedMsg = "";
@@ -372,7 +378,16 @@ function splitIncoming(incs) {
 		if (mergedMsg.indexOf('trump') != -1) {
 			trump.push(toAppend);
 		}
+
+		if (
+			mergedMsg.indexOf('stop') == -1 &&
+			mergedMsg.indexOf('wrong') == -1 &&
+			mergedMsg.indexOf('equivocado') == -1 &&
+			mergedMsg.indexOf('trump') == -1
+		) {
+			misc.push(toAppend);
+		}
 	}
-	return [stops, wrongNum, trump]
+	return [stops, wrongNum, trump, misc]
 }
 
