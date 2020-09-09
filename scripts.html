@@ -34,10 +34,47 @@
 		newHTML += `<button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button>`;
 		newHTML += `<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}','${fileName}')">Process call results</button><br>`;
 		newHTML += `<button class="btn btn-secondary" id="thruTextButton" onclick="thruTextAction('${fileID}','${fileName}')">Process ThruText</button><br>`;
+		newHTML += `<button class="btn btn-secondary" id="vanDailyButton" onclick="vanDailyAction('${fileID}', '${fileName}')">VAN Daily</button>`;
+		newHTML += `<button class="btn btn-secondary" id="vanWeeklyButton" onclick="vanWeeklyAction('${fileID}', '${fileName}')">VAN Weekly</button><br>`;
 		newHTML += `<button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
 		document.getElementById('arrowContainer').style.display = 'none';
+	}
+
+	function vanDailyAction(fileID, fileName) {
+		addParameterInputs();
+	}
+
+	function addParameterInputs() {
+
+		let newHTML = "";
+
+		newHTML += `<p>Minor Time Diff Threshold:</p>`;
+		newHTML += `<div style="display:flex;"><input type="range" min="1" max="30" value="5" class="slider" id="minorTimeDiffSlider"><p class="sliderLabel" id="minorSliderLabel">5 mins</p></div><br>`;
+		
+		newHTML += `<p>Major Time Diff Threshold: </p>`;
+		newHTML += `<div style="display:flex;"><input type="range" min="10" max="60" value="25" class="slider" id="majorTimeDiffSlider"><p class="sliderLabel" id="majorSliderLabel">25 mins</p></div><br>`;
+
+		newHTML += `<button class="btn btn-primary" id="vanDailyGoButton" onclick="activateVanDaily()">Start</button>`;
+		document.getElementById('fileList').innerHTML = newHTML;
+
+		let majorSlider = document.getElementById('majorTimeDiffSlider');
+		majorSlider.oninput = () => {
+			document.getElementById('majorSliderLabel').textContent = `${majorSlider.value} mins`;
+		};
+
+		let minorSlider = document.getElementById('minorTimeDiffSlider');
+		minorSlider.oninput = () => {
+			document.getElementById('minorSliderLabel').textContent = `${minorSlider.value} mins`;
+		};
+
+
+
+	}
+
+	function vanWeeklyAction(fileID, fileName) {
+		alert('This function is under construction.');
 	}
 
 	function thruTextAction(fileID, fileName) {
