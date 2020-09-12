@@ -31,6 +31,72 @@ li:hover {
 	padding: 5px;
 }
 
+.nameList {
+	padding-left: 5px;
+	min-height: 175px;
+	min-width: 100%;
+	list-style-type: none;
+}
+
+#uiController {
+	width: 90%;
+}
+
+.nameContainer {
+	min-width: 100%;
+	min-height: 175px;
+}
+
+.name:hover {
+	cursor:grab;
+}
+
+.teamNameHeader {
+	text-align: center;
+	font-weight: bold;
+	box-shadow: 1px 1px 1px 1px black;
+	padding: 5px;
+	background: #08f;
+	color: white;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.name {
+	box-shadow: 0px 3px 5px -1px black;
+	margin: 5px;
+	width: fit-content;
+	display: inline-block;
+	padding: 3px;
+	background: white;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#addTeamButton {
+	margin-left: 10px;
+}
+
+#teamInputContainer {
+	margin-bottom: 10px;
+}
+
+
+
+.nameContainer {
+	background-color: #cbd9f4;
+	box-shadow: 2px 2px 2px 2px lightslategray;
+	width: fit-content;
+}
+
 
 .folderLink {
 	text-decoration: underline;
@@ -49,18 +115,52 @@ li:hover {
 	/* background-color: lightgray; */
 }
 
-.fileLink {
+.fileLinkCSV {
 	color: blue;
-	font-weight: 500;
+	font-weight: 600;
+	font-size: 2ch;
+}
+
+.fileLinkXLSX {
+	color: green;
+	font-weight: 600;
 	font-size: 2ch;
 }
 
 #callerDetailsButton {
 	margin-right: 10px;
+	background-color: rgb(27, 107, 255);
+}
+
+#callerDetailsButton:hover {
+	font-weight: bold;
+}
+
+#callResultsButton {
+	background-color: rgb(27, 107, 255);
+}
+
+#callResultsButton:hover {
+	font-weight: bold;
+}
+
+#thruTextButton {
+	margin-top: 10px;
+	background-color: rgb(27, 107, 255);
+}
+
+#thruTextButton:hover {
+	font-weight: bold;
 }
 
 #resetButton {
 	margin-top: 7.5px;
+	background-color: gray;
+	border-color: white;
+}
+
+#resetButton:hover {
+	font-weight: bold;
 }
 
 .arrow {
@@ -108,19 +208,23 @@ li:hover {
 	font-weight: bold;
 }
 
-#thruTextButton {
-	margin-top: 10px;
-}
-
 #vanDailyButton {
 	margin-top: 10px;
 	margin-right: 10px;
 	background-color: darkolivegreen;
 }
 
+#vanDailyButton:hover{
+	font-weight: bold;
+}
+
 #vanWeeklyButton {
 	background-color: darkolivegreen;
 	margin-top: 10px;
+}
+
+#vanWeeklyButton:hover {
+	font-weight: bold;
 }
 
 #profilePic {

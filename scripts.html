@@ -1,5 +1,7 @@
 <script>
 
+	var selectedName;
+
 	function folderForward(output) {
 		document.getElementById('fileList').innerHTML = output['html'];
 		document.getElementById('currentFolderLabel').innerHTML += `/${output['name']}`;
@@ -42,21 +44,92 @@
 		document.getElementById('arrowContainer').style.display = 'none';
 	}
 
-	function vanDailyAction(fileID, fileName) {
-		addParameterInputs();
+	function activateVanDaily(fileID, fileName) {
+		let minorTimeDiff = document.getElementById('minorTimeDiffSlider').value;
+		let majorTimeDiff = document.getElementById('majorTimeDiffSlider').value;
+
+		google.script.run.withSuccessHandler(getNamesFinish).getNamesVAN(fileID, fileName);
+		
 	}
 
-	function addParameterInputs() {
+	function dragstart_handler(name) {
+		console.log(`dragstart start, name: ${name}`);
+		selectedName = name;
+	}
+
+	function dragover_handler(ev) {
+		ev.preventDefault();
+		ev.dataTransfer.dropEffect = "move";
+	}
+
+	function drop_handler(ev) {
+		console.log('dropend start');
+		console.log(ev);
+		ev.preventDefault();
+
+		let classType = ev.target.className;
+		console.log(classType);
+		if (classType != "nameList") {
+			return;
+		}
+
+		ev.target.appendChild(document.getElementById(selectedName));
+		console.log('dropend end');
+		console.log(ev);
+	}
+
+	function addTeamToMenu() {
+		let teamName = document.getElementById('teamNameInput').value;
+		let trimmedName = teamName.split(" ")[0].toLowerCase();
+		if (teamName == "") {
+			alert('You cannot add an empty team.');
+			return;
+		}
+
+		let oldHTML = document.getElementById('fileList').innerHTML.slice(0,-6);
+
+		let newObj = `<div class="nameContainer" id="${trimmedName}NameContainer">`;
+			newObj += `<h3 class="teamNameHeader">${teamName}</h3>`;
+			newObj += `<ul class="nameList" id="${trimmedName}NameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)"></ul></div>`;
+
+		document.getElementById('fileList').innerHTML = oldHTML + newObj + "</div>";
+	}
+
+	function getIdName(name) {
+		let [first, last] = [name.split(", ")[0], name.split(", ")[1]]
+		return `${first}${last.slice(0,2)}`;
+	}
+
+
+	function getNamesFinish(output) {
+		let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
+			newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button></div>`;
+			newHTML += `<div id="uiController">`;
+			newHTML += `<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
+		
+		for (const name of output) {
+			newHTML += `<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}')">${name}</p>`;
+		}
+			newHTML += `</ul></div></div>`;
+
+		document.getElementById('fileList').innerHTML = newHTML;
+	}
+
+	function vanDailyAction(fileID, fileName) {
+		addParameterInputs(fileID, fileName);
+	}
+
+	function addParameterInputs(fileID, fileName) {
 
 		let newHTML = "";
 
-		newHTML += `<p>Minor Time Diff Threshold:</p>`;
-		newHTML += `<div style="display:flex;"><input type="range" min="1" max="30" value="5" class="slider" id="minorTimeDiffSlider"><p class="sliderLabel" id="minorSliderLabel">5 mins</p></div><br>`;
-		
-		newHTML += `<p>Major Time Diff Threshold: </p>`;
-		newHTML += `<div style="display:flex;"><input type="range" min="10" max="60" value="25" class="slider" id="majorTimeDiffSlider"><p class="sliderLabel" id="majorSliderLabel">25 mins</p></div><br>`;
+			newHTML += `<p>Minor Time Diff Threshold:</p>`;
+			newHTML += `<div style="display:flex;"><input type="range" min="1" max="30" value="5" class="slider" id="minorTimeDiffSlider"><p class="sliderLabel" id="minorSliderLabel">5 mins</p></div><br>`;
+			
+			newHTML += `<p>Major Time Diff Threshold: </p>`;
+			newHTML += `<div style="display:flex;"><input type="range" min="10" max="60" value="25" class="slider" id="majorTimeDiffSlider"><p class="sliderLabel" id="majorSliderLabel">25 mins</p></div><br>`;
 
-		newHTML += `<button class="btn btn-primary" id="vanDailyGoButton" onclick="activateVanDaily()">Start</button>`;
+			newHTML += `<button class="btn btn-primary" id="vanDailyGoButton" onclick="activateVanDaily('${fileID}','${fileName}')">Start</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
 		let majorSlider = document.getElementById('majorTimeDiffSlider');

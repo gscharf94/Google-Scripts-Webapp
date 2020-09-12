@@ -25,7 +25,9 @@ function getRootInfo() {
 
 	files.forEach( (file) => {
 		if(`${file}`.slice(-3) == 'csv') {
-			html += `<li class="fileLink" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
+			html += `<li class="fileLinkCSV" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
+		} else if (`${file}`.slice(-4) == 'xlsx') {
+			html += `<li class="fileLinkXLSX" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		}
 	});
 
@@ -44,8 +46,10 @@ function dropdownSelection(folderName) {
 	}
 	while (files.hasNext()) {
 		let file = files.next();
-		if (`${file}`.slice(-3) == 'csv') {
-			html += `<li class="fileLink" onclick="fileSelectionAction('${file}','${folderName}','${file.getId()}')">${file}</li>`;
+		if(`${file}`.slice(-3) == 'csv') {
+			html += `<li class="fileLinkCSV" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
+		} else if (`${file}`.slice(-4) == 'xlsx') {
+			html += `<li class="fileLinkXLSX" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		}
 	}
 	return {'name':folderName, 'html':html};
@@ -64,8 +68,10 @@ function getParentInfo(folderName) {
 	}
 	while (files.hasNext()) {
 		let file = files.next();
-		if (`${file}`.slice(-3) == 'csv') {
-			html += `<li class="fileLink" onclick="fileSelectionAction('${file}', '${parentFolder.getName()}', '${file.getId()}')">${file}</li>`;
+		if(`${file}`.slice(-3) == 'csv') {
+			html += `<li class="fileLinkCSV" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
+		} else if (`${file}`.slice(-4) == 'xlsx') {
+			html += `<li class="fileLinkXLSX" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		}
 	}
 	return {'name':folderName, 'html':html};
