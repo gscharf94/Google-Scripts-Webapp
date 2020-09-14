@@ -1,6 +1,16 @@
 <script>
 
 	var selectedName;
+	var fullName;
+	var vanParams;
+	var globalFileId;
+	var teams = {
+		'Unassigned': [],
+	};
+	var teamTranslation = {
+		'unassignedNameList':'Unassigned',
+	}
+
 
 	function folderForward(output) {
 		document.getElementById('fileList').innerHTML = output['html'];
@@ -47,14 +57,15 @@
 	function activateVanDaily(fileID, fileName) {
 		let minorTimeDiff = document.getElementById('minorTimeDiffSlider').value;
 		let majorTimeDiff = document.getElementById('majorTimeDiffSlider').value;
+		vanParams = [minorTimeDiff, majorTimeDiff];
 
 		google.script.run.withSuccessHandler(getNamesFinish).getNamesVAN(fileID, fileName);
-		
 	}
 
-	function dragstart_handler(name) {
+	function dragstart_handler(name, fName) {
 		console.log(`dragstart start, name: ${name}`);
 		selectedName = name;
+		fullName = fName;
 	}
 
 	function dragover_handler(ev) {
@@ -64,7 +75,6 @@
 
 	function drop_handler(ev) {
 		console.log('dropend start');
-		console.log(ev);
 		ev.preventDefault();
 
 		let classType = ev.target.className;
@@ -74,8 +84,25 @@
 		}
 
 		ev.target.appendChild(document.getElementById(selectedName));
+
+		removeNameFromTeams(fullName);
+
+		let newTeam = teamTranslation[ev.target.id];
+		console.log(`teams`);
+		console.log(teams);
+
+		console.log(`newTeam: ${newTeam}`);
+		console.log(`name: ${selectedName}`);
+
+		teams[newTeam].push(fullName);
 		console.log('dropend end');
-		console.log(ev);
+	}
+
+	function removeNameFromTeams(name) {
+		for (const team in teams) {
+			let newArr = teams[team].filter( (val) => val != name );
+			teams[team] = newArr;
+		}
 	}
 
 	function addTeamToMenu() {
@@ -93,6 +120,8 @@
 			newObj += `<ul class="nameList" id="${trimmedName}NameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)"></ul></div>`;
 
 		document.getElementById('fileList').innerHTML = oldHTML + newObj + "</div>";
+		teamTranslation[`${trimmedName}NameList`] = teamName;
+		teams[`${teamName}`] = [];
 	}
 
 	function getIdName(name) {
@@ -100,19 +129,51 @@
 		return `${first}${last.slice(0,2)}`;
 	}
 
+	function processVanDailyAction() {
+		google.script.run.withSuccessHandler(processVanDailyFinish).startReport(teams, vanParams, globalFileId);
+	}
+
+	function processVanDailyFinish(output) {
+		document.getElementById('fileList').innerHTML = output;
+
+
+		teams = {
+			'Unassigned':[],
+		};
+		teamTranslation = {
+		'unassignedNameList':'Unassigned',
+		}
+		vanParams = undefined;
+		globalFileId = undefined;
+
+	}
+
 
 	function getNamesFinish(output) {
-		let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
-			newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button></div>`;
-			newHTML += `<div id="uiController">`;
-			newHTML += `<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
-		
-		for (const name of output) {
-			newHTML += `<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}')">${name}</p>`;
+		console.log(output);
+		if (output[2] == 'Error') {
+			let html =  `<h2 class="errorHeader">🛑 Error 🛑</h2><br></br>`;
+				html += `<h2 class="errorHeader2">There was an error pulling the names from the overview page.</h2><br>`;
+				html += `<h3 class="errorTip">Check the overview page and make sure it's the first sheet in the spreadsheet. The second sheet should be the big sheet. The data for both needs to start on A1.</h3>`;
+				
+				document.getElementById('fileList').innerHTML = html;
+		} else {
+			globalFileId = output[1];
+			output = output[0];
+	
+			let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
+				newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanDailyAction()">Start</button></div>`;
+				newHTML += `<div id="uiController">`;
+				newHTML += `<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
+			
+			for (const name of output) {
+				newHTML += `<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}','${name}')">${name}</p>`;
+				teams['Unassigned'].push(name[0]);
+			}
+				newHTML += `</ul></div></div>`;
+	
+			document.getElementById('fileList').innerHTML = newHTML;
 		}
-			newHTML += `</ul></div></div>`;
-
-		document.getElementById('fileList').innerHTML = newHTML;
 	}
 
 	function vanDailyAction(fileID, fileName) {
