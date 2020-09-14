@@ -30,6 +30,23 @@ function createSpreadsheet(originalName, parentFolder, type) {
 	return fileJSON.id;
 }
 
+function createSpreadsheetNamed(folder, name) {
+	let folderID = folder.getId();
+
+	console.log(`folder id: ${folderID}`);
+	console.log(`folder name: ${folder.getName()}`);
+	
+	let resource = {
+		title: name,
+		mimeType: MimeType.GOOGLE_SHEETS,
+		parents: [{ id: folderID }],
+	};
+
+	let fileJSON = Drive.Files.insert(resource);
+	return fileJSON.id;
+}
+
+
 function parseCSV(rawText) {
 	// turns CSV into 2d array
 	let split = rawText.split("\n");
