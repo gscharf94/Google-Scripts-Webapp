@@ -6,6 +6,7 @@ const COLORS = {
 	'orange':'#ffc622',
 	'yellow':'#fdf322',
 	'green':'#08bd0e',
+	'middleGray': '#999999',
 };
 
 const LETTERS = [
