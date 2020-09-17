@@ -11,6 +11,10 @@
 		'unassignedNameList':'Unassigned',
 	}
 
+	var globalFileIdList = [];
+
+	var globalNames;
+
 
 	function folderForward(output) {
 		document.getElementById('fileList').innerHTML = output['html'];
@@ -130,7 +134,20 @@
 	}
 
 	function processVanDailyAction() {
+		console.log(`starting van daily report`);
+		console.log(`teams:`);
+		console.log(teams);
+		console.log(`van params: ${vanParams}`);
+		console.log(`file id: ${globalFileId}`);
 		google.script.run.withSuccessHandler(processVanDailyFinish).startReport(teams, vanParams, globalFileId);
+	}
+
+	function processVanWeeklyAction() {
+		google.script.run.withSuccessHandler(processVanWeeklyFinish).startWeeklyReport(teams, globalFileIdList, globalNames);
+	}
+
+	function processVanWeeklyFinish(output) {
+		document.getElementById('fileList').innerHTML = output;
 	}
 
 	function processVanDailyFinish(output) {
@@ -208,7 +225,26 @@
 	}
 
 	function vanWeeklyAction(fileID, fileName) {
-		alert('This function is under construction.');
+		google.script.run.withSuccessHandler(showNamesWeekly).getWeeklyNames(fileID);
+	}
+
+	function showNamesWeekly(output) {
+		globalFileIdList = output[1];
+		globalNames = output[0];
+		output = output[0];
+	
+		let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
+			newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanWeeklyAction()">Start</button></div>`;
+			newHTML += `<div id="uiController">`;
+			newHTML += `<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
+			
+		for (const name in output) {
+			newHTML += `<p id="l${getIdName(name)}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name)}','${name}')">${name}</p>`;
+			teams['Unassigned'].push(name);
+		}
+			newHTML += `</ul></div></div>`;
+
+		document.getElementById('fileList').innerHTML = newHTML;
 	}
 
 	function thruTextAction(fileID, fileName) {

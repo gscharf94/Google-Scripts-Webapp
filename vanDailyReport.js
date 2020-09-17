@@ -20,6 +20,7 @@ function readNames(fileID) {
 
 	let firstColumnRange = overviewSheet.getRange("A1").getDataRegion(SpreadsheetApp.Dimension.ROWS);
 	return firstColumnRange.getValues();
+
 }
 
 
@@ -123,8 +124,13 @@ function checkBigSheet(fileID) {
 
 
 function startReport(teams, params, fileID) {
+	Logger.log(`starting VAN daily.\nTeams:`);
+	Logger.log(teams);
+	
 	let oss = SpreadsheetApp.openById(fileID);
 	let sheets = oss.getSheets();
+
+	Logger.log(`file id: ${fileID}`);
 
 	let fileName = DriveApp.getFileById(fileID).getName();
 	let dateStr = fileName.slice(0,6);
@@ -132,7 +138,7 @@ function startReport(teams, params, fileID) {
 
 	let parentFolder = DriveApp.getFileById(fileID).getParents().next();
 	let newFolder = parentFolder.createFolder(`${dateStr} GENERATED`);
-
+	Logger.log(`generated new folder: ${newFolder.getName()}`);
 
 	let nameList = [];
 	for (const team in teams) {
@@ -141,27 +147,215 @@ function startReport(teams, params, fileID) {
 		}
 	}
 
+	Logger.log(`namelist: ${nameList}`);	
+
+	Logger.log(`Checking for errors..`);
 	let output = checkSheetForErrors(teams, nameList, fileID);
+
 	if (output != "") {
+		Logger.log('Errors found');
 		return output;
 	}
 
+	Logger.log(`Getting overview data`);
 	let overviewData = extractOverviewData(fileID);
+	Logger.log(overviewData);
+
+	Logger.log(`getting time info`);
 	let timeInfo = getTimeInfo(nameList, fileID);
+	Logger.log(timeInfo);
+
 
 	for (const name in overviewData) {
 		overviewData[name]['timeInfo'] = timeInfo[name];
 	}
 
-	for (const team in teams) {
-		let teamSSID = createSpreadsheetNamed(newFolder, `${dateStr} TEAM ${team}`);
-		createOverviewPage(overviewData, teams[team], teamSSID, params);
+	Logger.log('added timeinfo to overview data');
 
+	// let individualSheetData = {};
+
+	// for (const team in teams) {
+
+	// 	if (teams[team].length == 0) {
+	// 		continue;
+	// 	}
+
+	// 	Logger.log(`starting team: ${team}`);
+	// 	let teamSSID = createSpreadsheetNamed(newFolder, `${dateStr} TEAM ${team}`);
+	// 	createOverviewPage(overviewData, teams[team], teamSSID, params);
+
+	// 	var teamIndividualData = {};
+
+	// 	for (const name of teams[team]) {
+	// 		Logger.log(`Creating individual sheet for: ${name}`);
+	// 		let individualData = extractIndividualData(fileID, name);
+	// 		teamIndividualData[name] = individualData;
+	// 		createIndividualSheet(teamSSID, individualData, name, timeInfo[name]['timeDiffs'], params);
+	// 	}
+
+	// 	individualSheetData[team] = teamIndividualData;
+	// }
+
+	Logger.log(`Starting visuals`);
+
+	createGraphs(teams, overviewData, null, newFolder, dateStr);
+	// createGraphs(teams, overviewData, individualSheetData, dateStr);
+}
+
+function createGraphs(teams, overviewData, teamIndividualData, parentFolder, dateStr) {
+	
+	let visualsSSID = createSpreadsheetNamed(parentFolder, `${dateStr} Visuals`);
+	createHourlyCanvStats(visualsSSID, overviewData, teams);
+	
+
+}
+
+function createHourlyCanvStats(ssid, data, teams) {
+	let ss = SpreadsheetApp.openById(ssid);
+	let sheet = ss.getSheetByName('Sheet1');
+	sheet.setName('Hourly Calls + Canv');
+	sheet.setHiddenGridlines(true);
+
+	let rangeData = [[
+		// 'Team',
+		'Name',
+		'Canv',
+		'Total',
+	]];
+
+	for (const team in teams) {
 		for (const name of teams[team]) {
-			let individualData = extractIndividualData(fileID, name);
-			createIndividualSheet(teamSSID, individualData, name, timeInfo[name]['timeDiffs'], params);
+			let { sTimeStr, eTimeStr, hrsWorked, hrlyAttempts, hrlyCanv } = getHourlyAvgData(data, name);
+			rangeData.push([
+				name,
+				hrlyCanv,
+				hrlyAttempts,
+			]);
 		}
 	}
+
+	let range = addRange(ssid, rangeData, 1, 1, 'Hourly Calls + Canv');
+	range.setNumberFormat('0.0');
+
+	function createAvgHourlyGraph(sheet, range) {
+		let chart = sheet.newChart();
+		chart
+			.addRange(range)
+			.setChartType(Charts.ChartType.BAR)
+			.setOption('width', 1200)
+			.setOption('height', 1200)
+			.setOption('legend', { position: "none" })
+			.setOption('titlePosition', 'none')
+			.setNumHeaders(1)
+			.setOption('isStacked', true)
+			.setOption('series.0.dataLabel', 'value')
+			.setOption('series.1.dataLabel', 'value')
+			.setOption('bar.groupWidth', "50")
+			.setOption('series.0.annotations.textStyle.fontSize', 15)
+			.setOption('series.0.annotations.highContract', false)
+			.setOption('series.1.annotations.textStyle.fontSize', 15)
+			.setOption('annotations.alwaysOutside', true)
+
+			// .setOption('chartArea', {left: "15%", top: "2.5%", width: "75%", height: "97.5%"})
+			// .setOption('chartArea.left', 0)
+			// .setOption('chartArea.top', 0)
+			// .setOption('chartArea.width', "100%")
+			// .setOption('chartArea.height', "100%")
+
+			.setPosition(1,1,0,0);
+
+		let c = 0;
+		let i = 0;
+		let canvColorArr = ['#19F7D0','#16D973','#24F03F','#4CD61C','#C0F943'];
+		let totalColorArr = ['#FA5E30','#DE392A','#F53A61','#DE2AAB','#E230FA'];
+		for (const team in teams) {
+			for (const name of teams[team]) {
+				chart.setOption(`series.0.items.${i}.color`, canvColorArr[c]);
+				chart.setOption(`series.1.items.${i}.color`, totalColorArr[c]);
+				i++;
+			}
+			c++;
+		}
+		
+		let finishedChart = chart.build();
+		sheet.insertChart(finishedChart);
+		return finishedChart;
+	}
+
+	createAvgHourlyGraph(sheet, range);
+
+	let topCanv = rangeData.slice(1,);
+	let topCalls = rangeData.slice(1,);
+
+	topCanv.sort( (a,b) => {
+		return b[1] - a[1];
+	});
+
+	topCalls.sort( (a,b) => {
+		return b[2] - a[2];
+	});
+
+	let topCanvData = [['Name','Canv']];
+	for (let i = 0; i < 5; i++) {
+		topCanvData.push([
+			topCanv[i][0],
+			topCanv[i][1],
+		]);
+	}
+
+	let topCallsData = [['Name', 'Calls']];
+	for (let i = 0; i < 5; i++) {
+		topCallsData.push([
+			topCalls[i][0],
+			topCalls[i][2],
+		]);
+	}
+
+	let topCanvRange = addRange(ssid, topCanvData, 3, 13, 'Hourly Calls + Canv');
+	topCanvRange.setNumberFormat('0.0');
+	topCanvRange.setBorder(true, true, true, true, false, false);
+	
+	let topRowCanv = sheet.getRange('M3:N3');
+	topRowCanv
+		.setBackground(COLORS['middleGray'])
+		.setHorizontalAlignment('center')
+		.setFontWeight('bold')
+		.setBorder(true, true, true, true, false, false);
+
+	sheet.getRange('M2')
+		.setValue('Top 5 Hourly Canvassed')
+		.setBackground(COLORS['middleGray'])
+		.setFontWeight('bold')
+		.setHorizontalAlignment('center')
+		.setBorder(true, true, true, true, false, false);
+
+	sheet.getRange('M2:N2').merge();
+	
+	
+	let topCallsRange = addRange(ssid, topCallsData, 11, 13, 'Hourly Calls + Canv');
+	topCallsRange.setNumberFormat('0.0');
+	topCallsRange.setBorder(true, true, true, true, false, false);
+
+	let topRowCall = sheet.getRange('M11:N11');
+	topRowCall
+		.setBackground(COLORS['middleGray'])
+		.setHorizontalAlignment('center')
+		.setFontWeight('bold')
+		.setBorder(true, true, true, true, false, false);
+
+	sheet.setColumnWidth(13, 150)
+	sheet.setColumnWidth(14, 65)
+
+	sheet.getRange('M10')
+		.setValue('Top 5 Hourly Calls')
+		.setBackground(COLORS['middleGray'])
+		.setFontWeight('bold')
+		.setHorizontalAlignment('center')
+		.setBorder(true, true, true, true, false, false);
+
+	sheet.getRange('M10:N10').merge()
+
+
 }
 
 function extractIndividualData(ssid, name) {
@@ -470,16 +664,7 @@ function createOverviewPage(data, team, ssid, params) {
 	]];
 
 	for (const name of team) {
-		let sTime = data[name]['timeInfo']['startTime'];
-		let sTimeStr = `${String(sTime.getHours()).padStart(2, '0')}:${String(sTime.getMinutes()).padStart(2, '0')}`;
-		let eTime = data[name]['timeInfo']['endTime'];
-		let eTimeStr = `${String(eTime.getHours()).padStart(2, '0')}:${String(eTime.getMinutes()).padStart(2, '0')}`;
-
-
-		let hrsWorked = eTime - sTime;
-		hrsWorked = (hrsWorked/60000)/60;
-		let hrlyAttempts = data[name]['totalCalls'] / hrsWorked;
-		let hrlyCanv = data[name]['canvassed'] / hrsWorked;
+		let { sTimeStr, eTimeStr, hrsWorked, hrlyAttempts, hrlyCanv } = getHourlyAvgData(data, name);
 
 		let minorTimeDiffs = data[name]['timeInfo']['timeDiffs'].filter( (val) => val > minorThreshold ).length;
 
@@ -528,6 +713,19 @@ function createOverviewPage(data, team, ssid, params) {
 	let thirdDataRange = addRange(ssid, thirdDataArr, row + 1, 1, 'Overview');
 	
 	formatOverviewSheet(sheet, sumTotalDataRange, programTotalRange, secondDataRange, thirdDataRange, params, team.length);
+}
+
+function getHourlyAvgData(data, name) {
+	let sTime = data[name]['timeInfo']['startTime'];
+	let sTimeStr = `${String(sTime.getHours()).padStart(2, '0')}:${String(sTime.getMinutes()).padStart(2, '0')}`;
+	let eTime = data[name]['timeInfo']['endTime'];
+	let eTimeStr = `${String(eTime.getHours()).padStart(2, '0')}:${String(eTime.getMinutes()).padStart(2, '0')}`;
+	let hrsWorked = eTime - sTime;
+	hrsWorked = (hrsWorked / 60000) / 60;
+
+	let hrlyAttempts = data[name]['totalCalls'] / hrsWorked;
+	let hrlyCanv = data[name]['canvassed'] / hrsWorked;
+	return { sTimeStr, eTimeStr, hrsWorked, hrlyAttempts, hrlyCanv };
 }
 
 function formatOverviewSheet(sheet, sumTotalRange, programTotalRange, secondRange, thirdRange, params, n) {
