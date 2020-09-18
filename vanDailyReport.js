@@ -172,42 +172,334 @@ function startReport(teams, params, fileID) {
 
 	Logger.log('added timeinfo to overview data');
 
-	// let individualSheetData = {};
+	let individualSheetData = {};
 
-	// for (const team in teams) {
+	for (const team in teams) {
 
-	// 	if (teams[team].length == 0) {
-	// 		continue;
-	// 	}
+		if (teams[team].length == 0) {
+			continue;
+		}
 
-	// 	Logger.log(`starting team: ${team}`);
-	// 	let teamSSID = createSpreadsheetNamed(newFolder, `${dateStr} TEAM ${team}`);
-	// 	createOverviewPage(overviewData, teams[team], teamSSID, params);
+		Logger.log(`starting team: ${team}`);
+		let teamSSID = createSpreadsheetNamed(newFolder, `${dateStr} TEAM ${team}`);
+		createOverviewPage(overviewData, teams[team], teamSSID, params);
 
-	// 	var teamIndividualData = {};
+		var teamIndividualData = {};
 
-	// 	for (const name of teams[team]) {
-	// 		Logger.log(`Creating individual sheet for: ${name}`);
-	// 		let individualData = extractIndividualData(fileID, name);
-	// 		teamIndividualData[name] = individualData;
-	// 		createIndividualSheet(teamSSID, individualData, name, timeInfo[name]['timeDiffs'], params);
-	// 	}
+		for (const name of teams[team]) {
+			Logger.log(`Creating individual sheet for: ${name}`);
+			let individualData = extractIndividualData(fileID, name);
+			teamIndividualData[name] = individualData;
+			createIndividualSheet(teamSSID, individualData, name, timeInfo[name]['timeDiffs'], params);
+		}
 
-	// 	individualSheetData[team] = teamIndividualData;
-	// }
+		addNameHyperlinks(teams[team], teamSSID);
+		individualSheetData[team] = teamIndividualData;
+	}
 
 	Logger.log(`Starting visuals`);
-
 	createGraphs(teams, overviewData, null, newFolder, dateStr);
-	// createGraphs(teams, overviewData, individualSheetData, dateStr);
+	Logger.log('Creating team comparison sheet');
+	createTeamComparisonSheet(teams, overviewData, newFolder, dateStr);
 }
+
+function addNameHyperlinks(nameList, ssid) {
+	let ss = SpreadsheetApp.openById(ssid);
+	let sheet = ss.getSheetByName('Overview');
+
+	let nameRange = sheet.getRange(`A3:A${2+nameList.length}`);
+	
+	function getHyperLink(name, ssid) {
+		Logger.log(`name: ${name}`);
+		let ss = SpreadsheetApp.openById(ssid);
+		let sheet = ss.getSheetByName(name);
+		let link = `https://docs.google.com/spreadsheets/d/${ssid}/edit#gid=${sheet.getSheetId()}`;
+		return `=HYPERLINK("${link}","${name}")`;
+	}
+
+	let rangeData = [];
+	Logger.log(`range data: ${nameRange.getValues()}`);
+	for (const name of nameRange.getValues()) {
+		rangeData.push([getHyperLink(name[0], ssid)]);
+	}
+
+	nameRange.setFormulas(rangeData);
+}
+
+function createTeamComparisonSheet(teams, data, parentFolder, dateStr) {
+	let ssid = createSpreadsheetNamed(parentFolder, `${dateStr} Team Comparison`);
+
+	let aggregateData = {};
+	for (const team in teams) {
+		if (teams[team].length == 0) {
+			continue;
+		}
+
+		let teamData = {
+			totalCalls: 0,
+			canvassed: 0,
+			leftMessage: 0,
+			refused: 0,
+			otherLanguage: 0,
+			notHome: 0,
+			disconnected: 0,
+			moved: 0,
+			other: 0,
+		}
+
+		for (const name of teams[team]) {
+			teamData['totalCalls'] += Number(data[name]['totalCalls']);
+			teamData['canvassed'] += Number(data[name]['canvassed']);
+			teamData['leftMessage'] += Number(data[name]['leftMessage']);
+			teamData['refused'] += Number(data[name]['refused']);
+			teamData['otherLanguage'] += Number(data[name]['otherLanguage']);
+			teamData['notHome'] += Number(data[name]['notHome']);
+			teamData['disconnected'] += Number(data[name]['disconnected']);
+			teamData['moved'] += Number(data[name]['moved']);
+			teamData['other'] += Number(data[name]['other']);
+		}
+
+		aggregateData[team] = teamData;
+	}
+
+	let ss = SpreadsheetApp.openById(ssid);
+	let sheet = ss.getSheetByName('Sheet1');
+	sheet.setName('Overview');
+	sheet.setHiddenGridlines(true);
+
+	let rangeData = [[
+		'Team',
+		'Total Calls',
+		"Canv'd",
+		'Left Mess',
+		'Ref',
+		'Other Lang',
+		'Not Home',
+		'Disc',
+		'Mvd',
+		'Other'
+	]];
+
+	for (const team in aggregateData) {
+		rangeData.push([
+			team,
+			aggregateData[team].totalCalls,
+			aggregateData[team].canvassed,
+			aggregateData[team].leftMessage,
+			aggregateData[team].refused,
+			aggregateData[team].otherLanguage,
+			aggregateData[team].notHome,
+			aggregateData[team].disconnected,
+			aggregateData[team].moved,
+			aggregateData[team].other,
+		]);
+	}
+
+	let mainRange = addRange(ssid, rangeData, 2, 2, 'Overview');
+	mainRange.setBorder(true, true, true, true, false, false);
+
+	let topRowRange = sheet.getRange('B2:K2')
+	topRowRange
+		.setBackground(COLORS['middleGray'])
+		.setHorizontalAlignment('center')
+		.setFontWeight('bold')
+		.setBorder(true, true, true, true, false, false)
+		.setWrap(true);
+
+	sheet.setRowHeight(2, 41);
+	sheet.setColumnWidth(1, 40);
+	sheet.setColumnWidth(2, 100);
+	sheet.setColumnWidth(3, 60);
+	sheet.setColumnWidth(4, 60);
+	sheet.setColumnWidth(5, 60);
+	sheet.setColumnWidth(6, 60);
+	sheet.setColumnWidth(7, 60);
+	sheet.setColumnWidth(8, 60);
+	sheet.setColumnWidth(9, 60);
+	sheet.setColumnWidth(10, 60);
+	sheet.setColumnWidth(11, 60);
+
+	let c = 0;
+	for (const team in aggregateData) {
+		c++;
+	}
+
+	let leftRange = sheet.getRange(`A1:A${c+1}`);
+	leftRange
+		.setHorizontalAlignment('right');
+
+	let chartRange = sheet.getRange('B2:C15');
+
+	function createPieChart(sheet, range) {
+		let chart = sheet.newChart()
+			.setChartType(Charts.ChartType.PIE)
+			.setOption('width', 500)
+			.setOption('height', 500)
+			.setNumHeaders(1)
+			.addRange(range)
+			.setOption('legend', { position: "left" })
+			.setOption('pieSliceText', 'value-and-percentage')
+			.setOption('title','Total Calls per Team')
+			.setPosition(8, 1, 0, 0);
+
+		let finishedChart = chart.build();
+		sheet.insertChart(finishedChart);
+		return finishedChart
+	}
+
+	createPieChart(sheet, chartRange);
+
+	let chart2Range = sheet.getRange(`B2:B15`);
+	let chart2Range2 = sheet.getRange('D2:D15');
+
+	function createPieChart2(sheet, r1, r2) {
+		let chart = sheet.newChart()
+			.setChartType(Charts.ChartType.PIE)
+			.setOption('width', 500)
+			.setOption('height', 500)
+			.setNumHeaders(1)
+			.addRange(r1)
+			.addRange(r2)
+			.setOption('legend', { position: "left" })
+			.setOption('pieSliceText', 'value-and-percentage')
+			.setOption('title','Total Canvassed per Team')
+			.setPosition(8, 9, 0, 0);
+
+		let finishedChart = chart.build();
+		sheet.insertChart(finishedChart);
+		return finishedChart
+	}
+
+	createPieChart2(sheet, chart2Range, chart2Range2);
+}
+
 
 function createGraphs(teams, overviewData, teamIndividualData, parentFolder, dateStr) {
 	
 	let visualsSSID = createSpreadsheetNamed(parentFolder, `${dateStr} Visuals`);
 	createHourlyCanvStats(visualsSSID, overviewData, teams);
-	
+	createTimeDiffsGraph(visualsSSID, overviewData, teams);
+	createHoursWorkedGraph(visualsSSID, overviewData, teams);
+}
 
+function createTimeDiffsGraph(ssid, data, teams) {
+	let ss = SpreadsheetApp.openById(ssid);
+	ss.insertSheet('Time Diffs');
+	let sheet = ss.getSheetByName('Time Diffs');
+	sheet.setHiddenGridlines(true);
+
+	let minorThreshold = 5;
+	let majorThreshold = 25;
+
+	let rangeData = [[
+		'Name',
+		`+${5}mins Time Diffs`,
+	]];
+
+	for (const team in teams) {
+		for (const name of teams[team]) {
+			let diffs = data[name]['timeInfo']['timeDiffs'].filter( (val) => val > minorThreshold ).length;
+			rangeData.push([
+				name,
+				diffs,
+			]);
+		}
+	}
+
+	let range = addRange(ssid, rangeData, 1, 1, 'Time Diffs');
+
+	function createTimeDiffsChart(sheet, range) {
+		let chart = sheet.newChart();
+
+		chart
+			.addRange(range)
+			.setChartType(Charts.ChartType.BAR)
+			.setOption('width', 1200)
+			.setOption('height', 1200)
+			.setOption('legend', { position: "none" })
+			.setOption('titlePosition', 'none')
+			.setNumHeaders(1)
+			.setOption('series.0.dataLabel', 'value')
+			.setOption('annotations.alwaysOutside', true)
+			.setOption('series.0.annotations.textStyle.fontSize', 15)
+			.setOption('chartArea', {top: "2.5%", height: "97.5%"})
+			.setPosition(1,1,0,0);
+
+			let i = 0;
+			let c = 0;
+			let colors = ['brown','orange','teal','green','olive','crimson','red'];
+			for (const team in teams) {
+				for (const name of teams[team]) {
+					chart.setOption(`series.0.items.${i}.color`, colors[c]);
+					i++;
+				}
+				c++;
+			}
+
+			let finishedChart = chart.build();
+			sheet.insertChart(finishedChart);
+			return finishedChart;
+	}
+
+	let chart = createTimeDiffsChart(sheet, range);
+}
+
+function createHoursWorkedGraph(ssid, data, teams) {
+	let ss = SpreadsheetApp.openById(ssid);
+	ss.insertSheet('Hours Worked');
+	let sheet = ss.getSheetByName('Hours Worked');
+	sheet.setHiddenGridlines(true);
+
+	let rangeData = [[
+		'Name',
+		'Hours Worked',
+	]];
+
+	for (const team in teams) {
+		for (const name of teams[team]) {
+			let { sTimeStr, eTimeStr, hrsWorked, hrlyAttempts, hrlyCanv } = getHourlyAvgData(data, name);
+			rangeData.push([
+				name,
+				hrsWorked,
+			]);
+		}
+	}
+
+	let range = addRange(ssid, rangeData, 1, 1, 'Hours Worked');
+	range.setNumberFormat('0.0');
+
+	function createChart(sheet, range) {
+		let chart = sheet.newChart();
+		chart
+			.addRange(range)
+			.setChartType(Charts.ChartType.BAR)
+			.setOption('width', 1200)
+			.setOption('height', 1200)
+			.setOption('legend', { position: "none" })
+			.setOption('titlePosition', 'none')
+			.setNumHeaders(1)
+			.setOption('series.0.dataLabel', 'value')
+			.setOption('annotations.alwaysOutside', true)
+			.setOption('series.0.annotations.textStyle.fontSize', 15)
+			.setOption('chartArea', {top: "2.5%", height: "97.5%"})
+			.setPosition(1,1,0,0);
+
+		let i = 0;
+		let c = 0;
+		let colors = ['brown','orange','teal','green','olive','crimson','red'];
+		for (const team in teams) {
+			for (const name of teams[team]) {
+				chart.setOption(`series.0.items.${i}.color`, colors[c]);
+				i++;
+			}
+			c++;
+		}
+
+		let finishedChart = chart.build();
+		sheet.insertChart(finishedChart);
+		return finishedChart;
+	}
+	let chart = createChart(sheet, range);
 }
 
 function createHourlyCanvStats(ssid, data, teams) {
@@ -217,7 +509,6 @@ function createHourlyCanvStats(ssid, data, teams) {
 	sheet.setHiddenGridlines(true);
 
 	let rangeData = [[
-		// 'Team',
 		'Name',
 		'Canv',
 		'Total',
@@ -255,19 +546,14 @@ function createHourlyCanvStats(ssid, data, teams) {
 			.setOption('series.0.annotations.highContract', false)
 			.setOption('series.1.annotations.textStyle.fontSize', 15)
 			.setOption('annotations.alwaysOutside', true)
-
-			// .setOption('chartArea', {left: "15%", top: "2.5%", width: "75%", height: "97.5%"})
-			// .setOption('chartArea.left', 0)
-			// .setOption('chartArea.top', 0)
-			// .setOption('chartArea.width', "100%")
-			// .setOption('chartArea.height', "100%")
-
+			// .setOption('chartArea', {left: "12%", top: "2.5%", width: "70%", height: "97.5%"})
+			.setOption('chartArea', {top: "2.5%", height: "97.5%"})
 			.setPosition(1,1,0,0);
 
 		let c = 0;
 		let i = 0;
-		let canvColorArr = ['#19F7D0','#16D973','#24F03F','#4CD61C','#C0F943'];
-		let totalColorArr = ['#FA5E30','#DE392A','#F53A61','#DE2AAB','#E230FA'];
+		let canvColorArr = ['brown','orange','teal','green','olive','crimson','red'];
+		let totalColorArr = ['lightcoral','moccasin','turquoise','limegreen','yellowgreen','palevioletred','salmon'];
 		for (const team in teams) {
 			for (const name of teams[team]) {
 				chart.setOption(`series.0.items.${i}.color`, canvColorArr[c]);
@@ -282,7 +568,7 @@ function createHourlyCanvStats(ssid, data, teams) {
 		return finishedChart;
 	}
 
-	createAvgHourlyGraph(sheet, range);
+	let chart = createAvgHourlyGraph(sheet, range);
 
 	let topCanv = rangeData.slice(1,);
 	let topCalls = rangeData.slice(1,);
@@ -331,7 +617,6 @@ function createHourlyCanvStats(ssid, data, teams) {
 
 	sheet.getRange('M2:N2').merge();
 	
-	
 	let topCallsRange = addRange(ssid, topCallsData, 11, 13, 'Hourly Calls + Canv');
 	topCallsRange.setNumberFormat('0.0');
 	topCallsRange.setBorder(true, true, true, true, false, false);
@@ -354,8 +639,6 @@ function createHourlyCanvStats(ssid, data, teams) {
 		.setBorder(true, true, true, true, false, false);
 
 	sheet.getRange('M10:N10').merge()
-
-
 }
 
 function extractIndividualData(ssid, name) {
@@ -496,6 +779,14 @@ function createIndividualSheet(ssid, data, name, tDiffs, params) {
 	let timeDiffRange = sheet.getRange(`D3:D${c+2}`)
 	timeDiffRange.setBackgrounds(timeColors);
 
+
+	// adding hyperlinks back to overview pages
+	let topLinkRange = sheet.getRange('J1');
+	let link = `https://docs.google.com/spreadsheets/d/${ssid}/edit#gid=0`
+	topLinkRange.setFormula(`=HYPERLINK("${link}", "Back to Overview")`);
+	
+	let bottomLinkRange = sheet.getRange(`A${timeColors.length+1}`);
+	bottomLinkRange.setFormula(`=HYPERLINK("${link}", "Back to Overview")`);
 }
 
 
@@ -544,6 +835,11 @@ function createOverviewPage(data, team, ssid, params) {
 		'Total', 'Average',
 		'Total', 'Average',
 	]);
+
+	function createNameHyperlink(name, ssid, sheetId) {
+
+	}
+
 
 	for (const name of team) {
 		let row = [
