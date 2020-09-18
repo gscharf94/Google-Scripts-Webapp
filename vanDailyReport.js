@@ -201,6 +201,10 @@ function startReport(teams, params, fileID) {
 	createGraphs(teams, overviewData, null, newFolder, dateStr);
 	Logger.log('Creating team comparison sheet');
 	createTeamComparisonSheet(teams, overviewData, newFolder, dateStr);
+
+	Logger.log('Success.')
+
+	return newFolder.getUrl();
 }
 
 function addNameHyperlinks(nameList, ssid) {

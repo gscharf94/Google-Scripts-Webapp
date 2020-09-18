@@ -63,6 +63,7 @@
 		let majorTimeDiff = document.getElementById('majorTimeDiffSlider').value;
 		vanParams = [minorTimeDiff, majorTimeDiff];
 
+		document.getElementById('fileList').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(getNamesFinish).getNamesVAN(fileID, fileName);
 	}
 
@@ -134,11 +135,7 @@
 	}
 
 	function processVanDailyAction() {
-		console.log(`starting van daily report`);
-		console.log(`teams:`);
-		console.log(teams);
-		console.log(`van params: ${vanParams}`);
-		console.log(`file id: ${globalFileId}`);
+		document.getElementById('uiController').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, this can take a few minutes..</div>';
 		google.script.run.withSuccessHandler(processVanDailyFinish).startReport(teams, vanParams, globalFileId);
 	}
 
@@ -151,17 +148,18 @@
 	}
 
 	function processVanDailyFinish(output) {
-		// document.getElementById('fileList').innerHTML = output;
+		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated folder..</h2></a>`;
+		document.getElementById('fileList').innerHTML = "";
 
 
-		// teams = {
-			// 'Unassigned':[],
-		// };
-		// teamTranslation = {
-		// 'unassignedNameList':'Unassigned',
-		// }
-		// vanParams = undefined;
-		// globalFileId = undefined;
+		teams = {
+			'Unassigned':[],
+		};
+		teamTranslation = {
+		'unassignedNameList':'Unassigned',
+		}
+		vanParams = undefined;
+		globalFileId = undefined;
 
 	}
 
