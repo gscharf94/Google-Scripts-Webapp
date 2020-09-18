@@ -784,9 +784,13 @@ function createIndividualSheet(ssid, data, name, tDiffs, params) {
 	let topLinkRange = sheet.getRange('J1');
 	let link = `https://docs.google.com/spreadsheets/d/${ssid}/edit#gid=0`
 	topLinkRange.setFormula(`=HYPERLINK("${link}", "Back to Overview")`);
+	topLinkRange.setFontWeight('bold');
+	topLinkRange.setFontSize(12)
 	
-	let bottomLinkRange = sheet.getRange(`A${timeColors.length+1}`);
+	let bottomLinkRange = sheet.getRange(`A${timeColors.length+3}`);
 	bottomLinkRange.setFormula(`=HYPERLINK("${link}", "Back to Overview")`);
+	bottomLinkRange.setFontWeight('bold');
+	bottomLinkRange.setFontSize(12)
 }
 
 
