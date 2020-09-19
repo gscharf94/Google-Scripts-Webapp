@@ -774,6 +774,12 @@ function extractIndividualData(ssid, name) {
 
 function createIndividualSheet(ssid, data, name, tDiffs, params) {
 	let ss = SpreadsheetApp.openById(ssid);
+	if (name.length == 1) {
+		name = name[0];
+	}
+	Logger.log(`creating individual sheet`);
+	Logger.log(name);
+	Logger.log(typeof(name));
 	ss.insertSheet(name);
 	let sheet = ss.getSheetByName(name);
 	sheet.setHiddenGridlines(true);
@@ -798,6 +804,7 @@ function createIndividualSheet(ssid, data, name, tDiffs, params) {
 
 	data.forEach( (row, ind, arr) => {
 		let dateStr = new Date(row[2]);
+		dateStr.setHours(dateStr.getHours()-3);
 		dateStr = `${String(dateStr.getHours()).padStart(2,'0')}:${String(dateStr.getMinutes()).padStart(2,'0')}`;
 		let tDiffStr = `${tDiffs[ind]} mins`;
 		if (ind == 0) {
@@ -1294,7 +1301,7 @@ function getIndividualTimeInfo(name, sheet) {
 
 	let startTime = new Date(timeCol[0][0]);
 	startTime.setHours(startTime.getHours()-3);
-	let endTime = new Date(timeCol[timeCol.length-1]);
+	let endTime = new Date(timeCol[timeCol.length-1][0]);
 	endTime.setHours(endTime.getHours()-3);
 
 	Logger.log(`time: ${name} s: ${startTime} e: ${endTime}`);
