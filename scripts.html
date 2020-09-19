@@ -150,6 +150,11 @@
 	}
 
 	function processVanDailyFinish(output) {
+
+		if (output[1] == true) {
+			document.getElementById('emptyThing').innerHTML = output;
+			return;
+		}
 		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated folder..</h2></a>`;
 		document.getElementById('fileList').innerHTML = "";
 

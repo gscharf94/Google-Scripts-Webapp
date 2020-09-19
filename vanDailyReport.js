@@ -219,7 +219,7 @@ function startReport(teams, params, fileID) {
 	Logger.log(`starting VAN daily.\nTeams:`);
 	Logger.log(teams);
 
-	saveTeamInfo(teams, fileID);
+	// saveTeamInfo(teams, fileID);
 
 	let oss = SpreadsheetApp.openById(fileID);
 	let sheets = oss.getSheets();
@@ -248,7 +248,7 @@ function startReport(teams, params, fileID) {
 
 	if (output != "") {
 		Logger.log('Errors found');
-		return output;
+		return [output, true];
 	}
 
 	Logger.log(`Getting overview data`);
@@ -258,7 +258,6 @@ function startReport(teams, params, fileID) {
 	Logger.log(`getting time info`);
 	let timeInfo = getTimeInfo(nameList, fileID);
 	Logger.log(timeInfo);
-
 
 	for (const name in overviewData) {
 		overviewData[name]['timeInfo'] = timeInfo[name];
@@ -1293,8 +1292,12 @@ function getIndividualTimeInfo(name, sheet) {
 	let timeCol = sheet.getRange('C1').getDataRegion(SpreadsheetApp.Dimension.ROWS).getValues();
 	timeCol.shift();
 
-	let startTime = new Date(timeCol[0]);
+	let startTime = new Date(timeCol[0][0]);
+	startTime.setHours(startTime.getHours()-3);
 	let endTime = new Date(timeCol[timeCol.length-1]);
+	endTime.setHours(endTime.getHours()-3);
+
+	Logger.log(`time: ${name} s: ${startTime} e: ${endTime}`);
 	let timeDiffs = getTimeDiffs(timeCol);
 	let avgTimeDiff = averageTimeDiffs(timeDiffs);
 
