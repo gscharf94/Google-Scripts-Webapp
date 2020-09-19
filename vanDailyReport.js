@@ -204,6 +204,7 @@ function startReport(teams, params, fileID) {
 
 	Logger.log('Success.')
 
+	DriveApp.getFileById(fileID).setTrashed(true);
 	return newFolder.getUrl();
 }
 
