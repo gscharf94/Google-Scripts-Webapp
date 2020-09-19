@@ -20,9 +20,101 @@ function readNames(fileID) {
 
 	let firstColumnRange = overviewSheet.getRange("A1").getDataRegion(SpreadsheetApp.Dimension.ROWS);
 	return firstColumnRange.getValues();
-
 }
 
+function createLoadedTeams(names) {
+	let folder = getOrCreateTeamSaveFolder();
+	let files = folder.getFiles();
+	if (!files.hasNext()) {
+		return false;
+	}
+
+	let today = new Date();
+	let smallest = 0;
+	while (files.hasNext()) {
+		let file = files.next();
+		if (today - file.getDateCreated() > smallest) {
+			var json = file.getBlob().getDataAsString();
+		}
+	}
+
+	let savedTeams = JSON.parse(json);
+	Logger.log('names:');
+	Logger.log(names);
+
+	Logger.log('saved team:');
+	Logger.log(savedTeams);
+
+	let template = {
+		'Unassigned': [],
+	};
+
+	let nameChecker = {};
+
+	for (const name of names) {
+		nameChecker[name] = false;
+	}
+
+	for (let name of names) {
+		name = name[0];
+		for (const team in savedTeams) {
+			for (const savedName of savedTeams[team]) {
+				if (name == savedName) {
+					if (template[team] == undefined) {
+						template[team] = [[name]];
+						nameChecker[name] = true;
+					} else {
+						template[team].push([name]);
+						nameChecker[name] = true;
+					}
+				}
+			}
+		}
+	}
+
+	for (const name in nameChecker) {
+		if (nameChecker[name] == false) {
+			template['Unassigned'].push([name]);
+		}
+	}
+
+	Logger.log(template);
+	return template;
+}
+
+function saveTeamInfo(teams, fileID) {
+	let folder = getOrCreateTeamSaveFolder();
+
+	let text = JSON.stringify(teams);
+	let fileDate = DriveApp.getFileById(fileID).getName().slice(0,4);
+	let today = new Date();
+	folder.createFile(`TEAMS: ${fileDate} SAVED ON: ${today.getMonth()+1}-${today.getDate()}.txt`, text, MimeType.PLAIN_TEXT);
+}
+
+function getOrCreateTeamSaveFolder() {
+	if (!checkIfTeamSaveFolderExists()) {
+		var folder = createTeamSaveFolder();
+	} else {
+		var folder = DriveApp.getFoldersByName('WEB APP - Saved Team History').next();
+	}
+	return folder;
+}
+
+function createTeamSaveFolder() {
+	let rootFolder = DriveApp.getRootFolder();
+	return rootFolder.createFolder('WEB APP - Saved Team History');
+}
+
+function checkIfTeamSaveFolderExists() {
+	let rootFolder = DriveApp.getRootFolder();
+	let folders = rootFolder.getFolders();
+	while (folders.hasNext()) {
+		if (folders.next().getName() == 'WEB APP - Saved Team History') {
+			return true;
+		}
+	}
+	return false;
+}
 
 function convertToSheet(fileID) {
 	let excelFile = DriveApp.getFileById(fileID);
@@ -31,7 +123,7 @@ function convertToSheet(fileID) {
 	let blob = excelFile.getBlob();
 
 	let resource = {
-		title: `${excelFile.getName()} CONVERTED`,
+		title: `${excelFile.getName()} TEMP FILE`,
 		mimeType: MimeType.GOOGLE_SHEETS,
 		parents: [{id: parentFolder.getId()}],
 	};
@@ -126,7 +218,11 @@ function checkBigSheet(fileID) {
 function startReport(teams, params, fileID) {
 	Logger.log(`starting VAN daily.\nTeams:`);
 	Logger.log(teams);
-	
+
+	saveTeamInfo(teams, fileID);
+
+	return 'testing'
+
 	let oss = SpreadsheetApp.openById(fileID);
 	let sheets = oss.getSheets();
 
