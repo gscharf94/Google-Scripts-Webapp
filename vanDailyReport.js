@@ -221,8 +221,6 @@ function startReport(teams, params, fileID) {
 
 	saveTeamInfo(teams, fileID);
 
-	return 'testing'
-
 	let oss = SpreadsheetApp.openById(fileID);
 	let sheets = oss.getSheets();
 
