@@ -1,4 +1,5 @@
 <script>
+	const DEBUG = true;
 
 	var selectedName;
 	var fullName;
@@ -150,9 +151,12 @@
 	}
 
 	function processVanDailyFinish(output) {
+		if (DEBUG == true) {
+			return;
+		}
 
 		if (output[1] == true) {
-			document.getElementById('emptyThing').innerHTML = output;
+			document.getElementById('emptyThing').innerHTML = output[0];
 			return;
 		}
 		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated folder..</h2></a>`;

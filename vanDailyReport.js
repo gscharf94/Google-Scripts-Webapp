@@ -1,15 +1,34 @@
+const DEBUG = true;
+
+function log(message, obj) {
+	if (DEBUG == true) {
+		let time = new Date();
+
+		if (obj == undefined) {
+			Logger.log(`${String(time.getMinutes()).padStart(2,'0')}:${String(time.getSeconds()).padStart(2,'0')} ${message}`);
+		} else {
+			Logger.log(`${String(time.getMinutes()).padStart(2,'0')}:${String(time.getSeconds()).padStart(2,'0')} ${message} *OBJ*`);
+			Logger.log(obj);
+		}
+	}
+}
+
 function getNamesVAN(fileID, fileName) {
 	try {
+		log(`start getNamesVan() fileId=${fileID} fileName=${fileName}`);
 		let newFile = convertToSheet(fileID);
 		let names = readNames(newFile.id);
 		
 		for (const name of names) {
 			if (isNaN(name) == false || name == "Address") {
+				log(`failure getNamesVan() - name=${name} is incorrect`);
 				return [0,0,'Error'];
 			}
 		}
+		log(`success returning {names}, newFile.id=${newFile.id}`, names);
 		return [names, newFile.id];
 	} catch(err) {
+		log(`failure getNamesVan() err: ${err}`);
 		return [0,0,'Error'];
 	}
 }
@@ -23,6 +42,7 @@ function readNames(fileID) {
 }
 
 function createLoadedTeams(names) {
+	log(`start createLoadedTeams()`, names);
 	let folder = getOrCreateTeamSaveFolder();
 	let files = folder.getFiles();
 	if (!files.hasNext()) {
@@ -39,11 +59,8 @@ function createLoadedTeams(names) {
 	}
 
 	let savedTeams = JSON.parse(json);
-	Logger.log('names:');
-	Logger.log(names);
 
-	Logger.log('saved team:');
-	Logger.log(savedTeams);
+	log(`saved team`, savedTeams)
 
 	let template = {
 		'Unassigned': [],
@@ -78,7 +95,8 @@ function createLoadedTeams(names) {
 		}
 	}
 
-	Logger.log(template);
+	log('template', template);
+	log('success createLoadedTeams()');
 	return template;
 }
 
@@ -216,15 +234,13 @@ function checkBigSheet(fileID) {
 
 
 function startReport(teams, params, fileID) {
-	Logger.log(`starting VAN daily.\nTeams:`);
-	Logger.log(teams);
+	let startingTime = new Date();
+	log(`starting startReport() {teams} fileID=${fileID}`, teams);
 
-	// saveTeamInfo(teams, fileID);
+	saveTeamInfo(teams, fileID);
 
 	let oss = SpreadsheetApp.openById(fileID);
 	let sheets = oss.getSheets();
-
-	Logger.log(`file id: ${fileID}`);
 
 	let fileName = DriveApp.getFileById(fileID).getName();
 	let dateStr = fileName.slice(0,6);
@@ -232,7 +248,7 @@ function startReport(teams, params, fileID) {
 
 	let parentFolder = DriveApp.getFileById(fileID).getParents().next();
 	let newFolder = parentFolder.createFolder(`${dateStr} GENERATED`);
-	Logger.log(`generated new folder: ${newFolder.getName()}`);
+	log(`generated new folder: ${newFolder.getName()}`);
 
 	let nameList = [];
 	for (const team in teams) {
@@ -240,64 +256,67 @@ function startReport(teams, params, fileID) {
 			nameList.push(name);
 		}
 	}
+	log(`nameList:`, nameList);
 
-	Logger.log(`namelist: ${nameList}`);	
-
-	Logger.log(`Checking for errors..`);
+	log(`starting error check`)
 	let output = checkSheetForErrors(teams, nameList, fileID);
 
 	if (output != "") {
-		Logger.log('Errors found');
+		log('errors found');
 		return [output, true];
 	}
 
-	Logger.log(`Getting overview data`);
+	log('getting overview data');
 	let overviewData = extractOverviewData(fileID);
-	Logger.log(overviewData);
+	log(`overview data:`, overviewData);
 
-	Logger.log(`getting time info`);
+	log('getting timeInfo');
 	let timeInfo = getTimeInfo(nameList, fileID);
-	Logger.log(timeInfo);
+	log('timeInfo', timeInfo);
 
 	for (const name in overviewData) {
 		overviewData[name]['timeInfo'] = timeInfo[name];
 	}
 
-	Logger.log('added timeinfo to overview data');
-
 	let individualSheetData = {};
 
 	for (const team in teams) {
-
 		if (teams[team].length == 0) {
 			continue;
 		}
 
-		Logger.log(`starting team: ${team}`);
+		log(`starting team: ${team}`);
 		let teamSSID = createSpreadsheetNamed(newFolder, `${dateStr} TEAM ${team}`);
+		log(`creating overviewPage`);
 		createOverviewPage(overviewData, teams[team], teamSSID, params);
 
 		var teamIndividualData = {};
-
 		for (const name of teams[team]) {
-			Logger.log(`Creating individual sheet for: ${name}`);
+			log(`starting individual sheet for: ${name}`)
 			let individualData = extractIndividualData(fileID, name);
 			teamIndividualData[name] = individualData;
 			createIndividualSheet(teamSSID, individualData, name, timeInfo[name]['timeDiffs'], params);
+			log(`finished ${name}`);
 		}
 
+		log(`adding hyperlinks for team ${team}`);
 		addNameHyperlinks(teams[team], teamSSID);
 		individualSheetData[team] = teamIndividualData;
 	}
 
-	Logger.log(`Starting visuals`);
+	log('starting visuals');
 	createGraphs(teams, overviewData, null, newFolder, dateStr);
-	Logger.log('Creating team comparison sheet');
+
+	log('creating team comparison sheet');
 	createTeamComparisonSheet(teams, overviewData, newFolder, dateStr);
 
-	Logger.log('Success.')
-
+	log('deleting TEMP file');
 	DriveApp.getFileById(fileID).setTrashed(true);
+	let endingTime = new Date();
+	
+	let mins = (endingTime - startingTime)/60000;
+	
+	log(`Success. Report took: ${Math.round(mins,3)} mins`);
 	return newFolder.getUrl();
 }
 
@@ -308,7 +327,6 @@ function addNameHyperlinks(nameList, ssid) {
 	let nameRange = sheet.getRange(`A3:A${2+nameList.length}`);
 	
 	function getHyperLink(name, ssid) {
-		Logger.log(`name: ${name}`);
 		let ss = SpreadsheetApp.openById(ssid);
 		let sheet = ss.getSheetByName(name);
 		let link = `https://docs.google.com/spreadsheets/d/${ssid}/edit#gid=${sheet.getSheetId()}`;
@@ -316,7 +334,6 @@ function addNameHyperlinks(nameList, ssid) {
 	}
 
 	let rangeData = [];
-	Logger.log(`range data: ${nameRange.getValues()}`);
 	for (const name of nameRange.getValues()) {
 		rangeData.push([getHyperLink(name[0], ssid)]);
 	}
@@ -777,9 +794,6 @@ function createIndividualSheet(ssid, data, name, tDiffs, params) {
 	if (name.length == 1) {
 		name = name[0];
 	}
-	Logger.log(`creating individual sheet`);
-	Logger.log(name);
-	Logger.log(typeof(name));
 	ss.insertSheet(name);
 	let sheet = ss.getSheetByName(name);
 	sheet.setHiddenGridlines(true);
@@ -1304,7 +1318,6 @@ function getIndividualTimeInfo(name, sheet) {
 	let endTime = new Date(timeCol[timeCol.length-1][0]);
 	endTime.setHours(endTime.getHours()-3);
 
-	Logger.log(`time: ${name} s: ${startTime} e: ${endTime}`);
 	let timeDiffs = getTimeDiffs(timeCol);
 	let avgTimeDiff = averageTimeDiffs(timeDiffs);
 
