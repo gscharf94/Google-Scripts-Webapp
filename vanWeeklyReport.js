@@ -48,12 +48,12 @@ function startWeeklyReport(teams, idList, names) {
 	}
 
 	// createTimeSuccessCharts(timeSuccessData, idList[0]);
-	createTeamStatsWeeklyReport(statsAggregate, idList[0], individualStats, teams);
-	// historicalWeeklyIndividualReport(individualStats, idList[0], statsAggregate);
+	// createTeamStatsWeeklyReport(statsAggregate, idList[0], individualStats, teams, names);
+	historicalWeeklyIndividualReport(individualStats, idList[0], statsAggregate);
 	return 'complete';
 }
 
-function createTeamStatsWeeklyReport(statsAggregate, childFileId, individualStats, teams) {
+function createTeamStatsWeeklyReport(statsAggregate, childFileId, individualStats, teams, names) {
 	// need average hourly stats per team
 	// need total stacked bar graph
 
@@ -63,6 +63,7 @@ function createTeamStatsWeeklyReport(statsAggregate, childFileId, individualStat
 	let ss = SpreadsheetApp.openById(ssid);
 	let sheet = ss.getSheetByName('Sheet1');
 	sheet.setName('Team Response Breakdown');
+	sheet.setHiddenGridlines(true);
 
 	let teamData = {};
 	let template = {
@@ -95,7 +96,208 @@ function createTeamStatsWeeklyReport(statsAggregate, childFileId, individualStat
 		}
 	}
 
-	Logger.log(teamData);
+
+	var r = 2;
+	var c = 1;
+
+	var i = 0;
+	for (const team in teamData) {
+		let other = teamData[team].total - teamData[team].canv - teamData[team].notHome - teamData[team].refused - teamData[team].disconnected - teamData[team].moved;
+		let arr = [
+			['Response', 'Count'],
+			['Canvassed', teamData[team].canv],
+			['Not Home', teamData[team].notHome],
+			['Refused', teamData[team].refused],
+			['Disconnected', teamData[team].disconnected],
+			['Moved', teamData[team].moved],
+			['Other', other],
+		];
+
+		sheet.getRange(`${LETTERS[c]}${r-1}`)
+			.setValue(`${team}`)
+			.setFontWeight('bold')
+			.setFontColor('white')
+			.setFontSize(12)
+			.setBackground('black')
+			.setHorizontalAlignment('center');
+
+		sheet.getRange(`${LETTERS[c]}${r-1}:${LETTERS[c+1]}${r-1}`).merge();
+
+		let dataRange = addRange(ssid, arr, r, c, 'Team Response Breakdown');
+		dataRange
+			.setHorizontalAlignment('center')
+			.setBorder(true, true, true, true, false, false);
+
+		let colors = createColorArr(2, 6);
+		colors.unshift([
+			COLORS['darkGray'],
+			COLORS['darkGray'],
+		]);
+
+		dataRange.setBackgrounds(colors);
+
+		sheet.getRange(`${LETTERS[c]}${r}:${LETTERS[c+1]}${r}`)
+			.setBorder(true, true, true, true, false, false)
+			.setFontWeight('bold');
+		// .setBackground(COLORS['darkGray']);
+
+		let chart = sheet.newChart();
+
+		chart
+			.addRange(dataRange)
+			.setChartType(Charts.ChartType.PIE)
+			.setOption('width', 400)
+			.setOption('height', 253)
+			.setOption('legend', {
+				position: 'right'
+			})
+			.setOption('title', `${team}`)
+			.setNumHeaders(1)
+			.setOption('pieSliceText', 'value-and-percentage')
+			.setPosition(r - 1, c + 2, 0, 0);
+
+		sheet.insertChart(chart.build());
+
+		if (i % 2 == 0) {
+			c += 6;
+		} else {
+			c -= 6;
+			r += 12;
+		}
+		i++;
+	}
+
+	if (i % 2 == 0) {
+		// pass
+	} else {
+		r += 12;
+	}
+
+	let totalData = [
+		['Response', 'Count'],
+		['Canvassed', 0],
+		['Not Home', 0],
+		['Refused', 0],
+		['Disconnected', 0],
+		['Moved', 0],
+		['Other', 0],
+	];
+
+	for (const team in teamData) {
+		totalData[1][1] += teamData[team].canv;
+		totalData[2][1] += teamData[team].notHome;
+		totalData[3][1] += teamData[team].refused;
+		totalData[4][1] += teamData[team].disconnected;
+		totalData[5][1] += teamData[team].moved;
+		totalData[6][1] += teamData[team].total - teamData[team].canv - teamData[team].notHome - teamData[team].refused - teamData[team].disconnected - teamData[team].moved;;
+	}
+
+	let dataRange = addRange(ssid, totalData, r, 1, 'Team Response Breakdown');
+
+	dataRange
+		.setBorder(true, true, true, true, false, false)
+		.setHorizontalAlignment('center');
+
+	let colors = createColorArr(2, 6);
+	colors.unshift([
+		COLORS['darkGray'],
+		COLORS['darkGray'],
+	]);
+
+	dataRange.setBackgrounds(colors);
+
+	sheet.getRange(`A${r}:B${r}`)
+		.setFontWeight('bold')
+		.setBorder(true, true, true, true, false, false);
+
+	let chart = sheet.newChart();
+
+	chart
+		.addRange(dataRange)
+		.setChartType(Charts.ChartType.PIE)
+		.setOption('width', 600)
+		.setOption('height', 400)
+		.setOption('legend', {
+			position: 'right'
+		})
+		.setOption('title', `All Teams`)
+		.setNumHeaders(1)
+		.setOption('pieSliceText', 'value-and-percentage')
+		.setPosition(r - 1, 3, 0, 0);
+
+	sheet.insertChart(chart.build());
+
+	ss.insertSheet('Hourly Stats');
+	sheet = ss.getSheetByName('Hourly Stats');
+	createHourlyStats(ssid, sheet, individualStats, teams, names);
+}
+
+function createHourlyStats(ssid, sheet, individualStats, teams, names) {
+	let teamData = {};
+	let teamDataCount = {};
+	for (const team in teams) {
+		teamData[team] = {
+			hoursWorked: 0,
+			timeDiffs: 0,
+			hourlyCanv: 0,
+			hourlyCalls: 0,
+		};
+		teamDataCount[team] = 0;
+
+		for (const person of teams[team]) {
+			for (const person2 in individualStats) {
+				if (person == person2) {
+					for (const day in individualStats[person2]) {
+						teamData[team].hoursWorked += individualStats[person2][day].hoursWorked;
+						teamData[team].timeDiffs += individualStats[person2][day].timeDiffs;
+						teamData[team].hourlyCalls += individualStats[person2][day].hourlyCalls;
+						teamData[team].hourlyCanv += individualStats[person2][day].hourlyCanv;
+
+						teamDataCount[team]++;
+					}
+				}
+			}
+		}
+	}
+
+	let arr = [
+		[
+			'Team', 'Hourly Calls',
+			'Hourly Canvassed', 'Hours Worked',
+			'Time Diffs (6+)'
+		]
+	];
+	for (const team in teamData) {
+		let count = teamDataCount[team];
+		arr.push([
+			team,
+			teamData[team].hourlyCalls / count,
+			teamData[team].hourlyCanv / count,
+			teamData[team].hoursWorked / count,
+			teamData[team].timeDiffs / count,
+		]);
+	}
+
+	let dataRange = addRange(ssid, arr, 1, 1, 'Hourly Stats');
+	dataRange.setNumberFormat('#.#');
+
+	let chart = sheet.newChart();
+	chart
+		.addRange(dataRange)
+		.setChartType(Charts.ChartType.COLUMN)
+		.setOption('width', 800)
+		.setOption('height', 800)
+		.setOption('title', 'Average Hourly Team Stats')
+		.setNumHeaders(1)
+		.setOption('series.0.dataLabel', 'value')
+		.setOption('series.1.dataLabel', 'value')
+		.setOption('series.2.dataLabel', 'value')
+		.setOption('series.3.dataLabel', 'value')
+		.setOption('useFirstColumnAsDomain', 'true')
+		.setPosition(1, 1, 0, 0);
+
+	sheet.insertChart(chart.build());
+	sheet.setHiddenGridlines(true);
 }
 
 function historicalWeeklyIndividualReport(individualStats, childFileId, statsAggregate) {
@@ -405,6 +607,9 @@ function getIndividualData(sheet) {
 	let startTime = sheet.getRange('C2').getValue();
 	let endTime = sheet.getRange(`C${lastRow}`).getValue();
 	let hoursWorked = (endTime - startTime) / 60000 / 60;
+	if (hoursWorked < 1) {
+		hoursWorked = 1;
+	}
 
 	let timeCol = sheet.getRange(`C2:C${lastRow}`).getValues();
 	let canvCol = sheet.getRange(`H2:H${lastRow}`).getValues();
