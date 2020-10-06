@@ -1,5 +1,5 @@
 <script>
-	const DEBUG = true;
+	const DEBUG = false;
 
 	var selectedName;
 	var fullName;
@@ -10,7 +10,7 @@
 		'Unassigned': [],
 	};
 	var teamTranslation = {
-		'unassignedNameList':'Unassigned',
+		'unassignedNameList': 'Unassigned',
 	}
 
 	var globalFileIdList = [];
@@ -31,7 +31,7 @@
 		let path = document.getElementById('currentFolderLabel').innerHTML;
 		let ind = path.indexOf('/');
 		while (ind != -1) {
-			path = path.slice(ind+1, path.length);
+			path = path.slice(ind + 1, path.length);
 			ind = path.indexOf('/');
 		}
 
@@ -41,7 +41,7 @@
 	function goUpFolder(output) {
 		document.getElementById('fileList').innerHTML = output['html'];
 		let lab = document.getElementById('currentFolderLabel').innerHTML;
-		lab = lab.slice(0,-(output['name'].length+1));
+		lab = lab.slice(0, -(output['name'].length + 1));
 		document.getElementById('currentFolderLabel').innerHTML = lab;
 	}
 
@@ -49,11 +49,16 @@
 		let newLabel = `<b>${folderName}/${fileName}</b>`;
 		document.getElementById('currentFolderLabel').innerHTML = newLabel;
 		let newHTML = '';
-		newHTML += `<button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button>`;
-		newHTML += `<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}','${fileName}')">Process call results</button><br>`;
-		newHTML += `<button class="btn btn-secondary" id="thruTextButton" onclick="thruTextAction('${fileID}','${fileName}')">Process ThruText</button><br>`;
-		newHTML += `<button class="btn btn-secondary" id="vanDailyButton" onclick="vanDailyAction('${fileID}', '${fileName}')">VAN Daily</button>`;
-		newHTML += `<button class="btn btn-secondary" id="vanWeeklyButton" onclick="vanWeeklyAction('${fileID}', '${fileName}')">VAN Weekly</button><br>`;
+		newHTML +=
+			`<button class="btn btn-secondary" id="callerDetailsButton" onclick="callerDetailsAction('${fileID}','${fileName}')">Process caller details</button>`;
+		newHTML +=
+			`<button class="btn btn-secondary" id="callResultsButton" onclick="callResultsAction('${fileID}','${fileName}')">Process call results</button><br>`;
+		newHTML +=
+			`<button class="btn btn-secondary" id="thruTextButton" onclick="thruTextAction('${fileID}','${fileName}')">Process ThruText</button><br>`;
+		newHTML +=
+			`<button class="btn btn-secondary" id="vanDailyButton" onclick="vanDailyAction('${fileID}', '${fileName}')">VAN Daily</button>`;
+		newHTML +=
+			`<button class="btn btn-secondary" id="vanWeeklyButton" onclick="vanWeeklyAction('${fileID}', '${fileName}')">VAN Weekly</button><br>`;
 		newHTML += `<button class="btn btn-primary" id="resetButton" onclick="resetButtonAction()">Reset</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
@@ -65,7 +70,8 @@
 		let majorTimeDiff = document.getElementById('majorTimeDiffSlider').value;
 		vanParams = [minorTimeDiff, majorTimeDiff];
 
-		document.getElementById('fileList').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
+		document.getElementById('fileList').innerHTML =
+			'<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(getNamesFinish).getNamesVAN(fileID, fileName);
 	}
 
@@ -107,7 +113,7 @@
 
 	function removeNameFromTeams(name) {
 		for (const team in teams) {
-			let newArr = teams[team].filter( (val) => val != name );
+			let newArr = teams[team].filter((val) => val != name);
 			teams[team] = newArr;
 		}
 	}
@@ -120,11 +126,12 @@
 			return;
 		}
 
-		let oldHTML = document.getElementById('fileList').innerHTML.slice(0,-6);
+		let oldHTML = document.getElementById('fileList').innerHTML.slice(0, -6);
 
 		let newObj = `<div class="nameContainer" id="${trimmedName}NameContainer">`;
-			newObj += `<h3 class="teamNameHeader">${teamName}</h3>`;
-			newObj += `<ul class="nameList" id="${trimmedName}NameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)"></ul></div>`;
+		newObj += `<h3 class="teamNameHeader">${teamName}</h3>`;
+		newObj +=
+			`<ul class="nameList" id="${trimmedName}NameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)"></ul></div>`;
 
 		document.getElementById('fileList').innerHTML = oldHTML + newObj + "</div>";
 		teamTranslation[`${trimmedName}NameList`] = teamName;
@@ -132,13 +139,13 @@
 	}
 
 	function getIdName(name) {
-		console.log(`name: |${name}|`);
 		let [first, last] = [name.split(", ")[0], name.split(", ")[1]]
 		return `${first}${last.slice(0,2)}`;
 	}
 
 	function processVanDailyAction() {
-		document.getElementById('uiController').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, this can take a few minutes..</div>';
+		document.getElementById('uiController').innerHTML =
+			'<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, this can take a few minutes..</div>';
 		google.script.run.withSuccessHandler(processVanDailyFinish).startReport(teams, vanParams, globalFileId);
 	}
 
@@ -147,7 +154,9 @@
 	}
 
 	function processVanWeeklyFinish(output) {
-		document.getElementById('fileList').innerHTML = output;
+		console.log('GAS finished..');
+		console.log(output);
+		// document.getElementById('fileList').innerHTML = output;
 	}
 
 	function processVanDailyFinish(output) {
@@ -164,10 +173,10 @@
 
 
 		teams = {
-			'Unassigned':[],
+			'Unassigned': [],
 		};
 		teamTranslation = {
-		'unassignedNameList':'Unassigned',
+			'unassignedNameList': 'Unassigned',
 		}
 		vanParams = undefined;
 		globalFileId = undefined;
@@ -188,26 +197,30 @@
 		};
 
 		let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
-			newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanDailyAction()">Start</button>`;
-			newHTML += `<button id="loadSavedTeamsButton" class="btn btn-primary" onclick="loadSavedTeams()">Load Most Recent Teams</button></div>`;
-			newHTML += `<div id="uiController">`;
+		newHTML +=
+			`<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanDailyAction()">Start</button>`;
+		newHTML +=
+			`<button id="loadSavedTeamsButton" class="btn btn-primary" onclick="loadSavedTeams()">Load Most Recent Teams</button></div>`;
+		newHTML += `<div id="uiController">`;
 
 
-			for (const team in output) {
-				let trimmedTeamName = team.split(" ")[0].toLowerCase();
-				newHTML += `<div class="nameContainer" id="${trimmedTeamName}NameContainer"><h3 class="teamNameHeader">${team}</h3><ul id="${trimmedTeamName}NameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
-				for (const name of output[team]) {
-					newHTML += `<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}','${name}')">${name}</p>`;
-					if (teams[team] == undefined) {
-						teams[team] = [name];
-					} else {
-						teams[team].push(name);
-					}
+		for (const team in output) {
+			let trimmedTeamName = team.split(" ")[0].toLowerCase();
+			newHTML +=
+				`<div class="nameContainer" id="${trimmedTeamName}NameContainer"><h3 class="teamNameHeader">${team}</h3><ul id="${trimmedTeamName}NameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
+			for (const name of output[team]) {
+				newHTML +=
+					`<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}','${name}')">${name}</p>`;
+				if (teams[team] == undefined) {
+					teams[team] = [name];
+				} else {
+					teams[team].push(name);
 				}
-				newHTML += `</ul></div>`;
 			}
-			
-			newHTML += '</div>';
+			newHTML += `</ul></div>`;
+		}
+
+		newHTML += '</div>';
 
 		document.getElementById('fileList').innerHTML = newHTML;
 	}
@@ -215,29 +228,34 @@
 	function getNamesFinish(output) {
 		console.log(output);
 		if (output[2] == 'Error') {
-			let html =  `<h2 class="errorHeader">🛑 Error 🛑</h2><br></br>`;
-				html += `<h2 class="errorHeader2">There was an error pulling the names from the overview page.</h2><br>`;
-				html += `<h3 class="errorTip">Check the overview page and make sure it's the first sheet in the spreadsheet. The second sheet should be the big sheet. The data for both needs to start on A1.</h3>`;
-				
-				document.getElementById('fileList').innerHTML = html;
+			let html = `<h2 class="errorHeader">🛑 Error 🛑</h2><br></br>`;
+			html += `<h2 class="errorHeader2">There was an error pulling the names from the overview page.</h2><br>`;
+			html +=
+				`<h3 class="errorTip">Check the overview page and make sure it's the first sheet in the spreadsheet. The second sheet should be the big sheet. The data for both needs to start on A1.</h3>`;
+
+			document.getElementById('fileList').innerHTML = html;
 		} else {
 			globalFileId = output[1];
 			output = output[0];
 			globalSavedNames = output;
-			
-	
+
+
 			let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
-				newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanDailyAction()">Start</button>`;
-				newHTML += `<button id="loadSavedTeamsButton" class="btn btn-primary" onclick="loadSavedTeams()">Load Most Recent Teams</button></div>`;
-				newHTML += `<div id="uiController">`;
-				newHTML += `<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
-			
+			newHTML +=
+				`<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanDailyAction()">Start</button>`;
+			newHTML +=
+				`<button id="loadSavedTeamsButton" class="btn btn-primary" onclick="loadSavedTeams()">Load Most Recent Teams</button></div>`;
+			newHTML += `<div id="uiController">`;
+			newHTML +=
+				`<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
+
 			for (const name of output) {
-				newHTML += `<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}','${name}')">${name}</p>`;
+				newHTML +=
+					`<p id="l${getIdName(name[0])}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name[0])}','${name}')">${name}</p>`;
 				teams['Unassigned'].push(name[0]);
 			}
-				newHTML += `</ul></div></div>`;
-	
+			newHTML += `</ul></div></div>`;
+
 			document.getElementById('fileList').innerHTML = newHTML;
 		}
 	}
@@ -250,13 +268,16 @@
 
 		let newHTML = "";
 
-			newHTML += `<p>Minor Time Diff Threshold:</p>`;
-			newHTML += `<div style="display:flex;"><input type="range" min="1" max="30" value="5" class="slider" id="minorTimeDiffSlider"><p class="sliderLabel" id="minorSliderLabel">5 mins</p></div><br>`;
-			
-			newHTML += `<p>Major Time Diff Threshold: </p>`;
-			newHTML += `<div style="display:flex;"><input type="range" min="10" max="60" value="25" class="slider" id="majorTimeDiffSlider"><p class="sliderLabel" id="majorSliderLabel">25 mins</p></div><br>`;
+		newHTML += `<p>Minor Time Diff Threshold:</p>`;
+		newHTML +=
+			`<div style="display:flex;"><input type="range" min="1" max="30" value="5" class="slider" id="minorTimeDiffSlider"><p class="sliderLabel" id="minorSliderLabel">5 mins</p></div><br>`;
 
-			newHTML += `<button class="btn btn-primary" id="vanDailyGoButton" onclick="activateVanDaily('${fileID}','${fileName}')">Start</button>`;
+		newHTML += `<p>Major Time Diff Threshold: </p>`;
+		newHTML +=
+			`<div style="display:flex;"><input type="range" min="10" max="60" value="25" class="slider" id="majorTimeDiffSlider"><p class="sliderLabel" id="majorSliderLabel">25 mins</p></div><br>`;
+
+		newHTML +=
+			`<button class="btn btn-primary" id="vanDailyGoButton" onclick="activateVanDaily('${fileID}','${fileName}')">Start</button>`;
 		document.getElementById('fileList').innerHTML = newHTML;
 
 		let majorSlider = document.getElementById('majorTimeDiffSlider');
@@ -281,23 +302,27 @@
 		globalFileIdList = output[1];
 		globalNames = output[0];
 		output = output[0];
-	
+
 		let newHTML = `<div id="teamInputContainer"><input type="text" id="teamNameInput" name="teamNameInput">`;
-			newHTML += `<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanWeeklyAction()">Start</button></div>`;
-			newHTML += `<div id="uiController">`;
-			newHTML += `<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
-			
+		newHTML +=
+			`<button id="addTeamButton" onclick="addTeamToMenu()">ADD TEAM</button><button id="processVanDailyButton" class="btn btn-secondary" onclick="processVanWeeklyAction()">Start</button></div>`;
+		newHTML += `<div id="uiController">`;
+		newHTML +=
+			`<div class="nameContainer" id="unassignedNameContainer"><h3 class="teamNameHeader">Unassigned</h3><ul id="unassignedNameList" class="nameList" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">`;
+
 		for (const name in output) {
-			newHTML += `<p id="l${getIdName(name)}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name)}','${name}')">${name}</p>`;
+			newHTML +=
+				`<p id="l${getIdName(name)}" class="name" draggable="true" ondragstart="dragstart_handler('l${getIdName(name)}','${name}')">${name}</p>`;
 			teams['Unassigned'].push(name);
 		}
-			newHTML += `</ul></div></div>`;
+		newHTML += `</ul></div></div>`;
 
 		document.getElementById('fileList').innerHTML = newHTML;
 	}
 
 	function thruTextAction(fileID, fileName) {
-		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
+		document.getElementById('emptyThing').innerHTML =
+			'<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(thruTextFinish).startThruText(fileID, fileName);
 	}
 
@@ -306,16 +331,18 @@
 	}
 
 	function callerDetailsAction(fileID, fileName) {
-		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
+		document.getElementById('emptyThing').innerHTML =
+			'<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(callerDetailsFinish).callerDetailsStart(fileID, fileName);
 	}
-	
+
 	function callerDetailsFinish(output) {
 		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated sheet..</h2></a>`;
 	}
-	
+
 	function callResultsAction(fileID, fileName) {
-		document.getElementById('emptyThing').innerHTML = '<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
+		document.getElementById('emptyThing').innerHTML =
+			'<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, please wait..</div>';
 		google.script.run.withSuccessHandler(callerDetailsFinish).callResultsStart(fileID, fileName);
 	}
 
@@ -328,18 +355,18 @@
 		document.getElementById('emptyThing').innerHTML = "";
 		document.getElementById('fileList').innerHTML = output['html'];
 		document.getElementById('arrowContainer').style.display = 'inline';
-		
+
 	}
 
 	function setUserInfo(output) {
 		let name = output['name'];
 		let email = output['email'];
 		let imgURL = output['imageURL'];
-		document.getElementById('userInfo').innerHTML = `Logged in as:<br> <img id="profilePic" src="${imgURL}"></img>${name}, ${email}`;
+		document.getElementById('userInfo').innerHTML =
+			`Logged in as:<br> <img id="profilePic" src="${imgURL}"></img>${name}, ${email}`;
 	}
 
 	function getUserInfoAction() {
 		google.script.run.withSuccessHandler(setUserInfo).getUserInfo();
 	}
-
 </script>

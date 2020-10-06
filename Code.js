@@ -1,3 +1,18 @@
+const DEBUG = true;
+
+function log(message, obj) {
+	if (DEBUG == true) {
+		let time = new Date();
+
+		if (obj == undefined) {
+			Logger.log(`${String(time.getMinutes()).padStart(2,'0')}:${String(time.getSeconds()).padStart(2,'0')} ${message}`);
+		} else {
+			Logger.log(`${String(time.getMinutes()).padStart(2,'0')}:${String(time.getSeconds()).padStart(2,'0')} ${message} *OBJ*`);
+			Logger.log(obj);
+		}
+	}
+}
+
 function doGet() {
 	return HtmlService
 		.createTemplateFromFile('page')
@@ -18,20 +33,24 @@ function getRootInfo() {
 	}
 
 	let html = "";
-		
-	folders.forEach( (folder) => {
+
+	folders.forEach((folder) => {
 		html += `<li class="folderLink" onclick="folderForwardAction('${folder}')">${folder}</li>`;
 	});
 
-	files.forEach( (file) => {
-		if(`${file}`.slice(-3) == 'csv') {
+	files.forEach((file) => {
+		if (`${file}`.slice(-3) == 'csv') {
 			html += `<li class="fileLinkCSV" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		} else if (`${file}`.slice(-4) == 'xlsx') {
 			html += `<li class="fileLinkXLSX" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		}
 	});
 
-	return { 'folders':folders, 'files':files, 'html':html };
+	return {
+		'folders': folders,
+		'files': files,
+		'html': html
+	};
 }
 
 
@@ -46,13 +65,16 @@ function dropdownSelection(folderName) {
 	}
 	while (files.hasNext()) {
 		let file = files.next();
-		if(`${file}`.slice(-3) == 'csv') {
+		if (`${file}`.slice(-3) == 'csv') {
 			html += `<li class="fileLinkCSV" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		} else if (`${file}`.slice(-4) == 'xlsx') {
 			html += `<li class="fileLinkXLSX" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		}
 	}
-	return {'name':folderName, 'html':html};
+	return {
+		'name': folderName,
+		'html': html
+	};
 }
 
 function getParentInfo(folderName) {
@@ -68,13 +90,16 @@ function getParentInfo(folderName) {
 	}
 	while (files.hasNext()) {
 		let file = files.next();
-		if(`${file}`.slice(-3) == 'csv') {
+		if (`${file}`.slice(-3) == 'csv') {
 			html += `<li class="fileLinkCSV" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		} else if (`${file}`.slice(-4) == 'xlsx') {
 			html += `<li class="fileLinkXLSX" onclick="fileSelectionAction('${file}','My Drive','${file.getId()}')">${file}</li>`;
 		}
 	}
-	return {'name':folderName, 'html':html};
+	return {
+		'name': folderName,
+		'html': html
+	};
 }
 
 function getUserInfo() {
@@ -83,12 +108,11 @@ function getUserInfo() {
 	let imageURL = data['user']['picture']['url'];
 
 	let output = {
-		'email':Session.getActiveUser().getEmail(),
+		'email': Session.getActiveUser().getEmail(),
 		'name': name,
-		'imageURL':imageURL,
+		'imageURL': imageURL,
 	};
 	return output;
-
 }
 
 function include(filename) {

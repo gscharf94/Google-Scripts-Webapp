@@ -6,7 +6,7 @@ function callerDetailsStart(fileID, fileName) {
 
 	let parsedCSV = parseCSV(rawText);
 	let data = createDict(parsedCSV);
-	let sheetID = createSpreadsheet(fileName, parentFolder,'CD-');
+	let sheetID = createSpreadsheet(fileName, parentFolder, 'CD-');
 	let sortedData = createToWriteArr(data);
 
 	let overviewSheet = setupOverviewSheet(sheetID, sortedData);
@@ -18,10 +18,10 @@ function callerDetailsStart(fileID, fileName) {
 	let tdRange = tdOutput[1];
 	let timeFlagChart = createTimeFlagChart(tdSheet, tdRange);
 
-	
+
 	return SpreadsheetApp.openById(sheetID).getUrl();
 
-	
+
 }
 
 function createTimeFlagChart(sheet, range) {
@@ -31,10 +31,12 @@ function createTimeFlagChart(sheet, range) {
 		.setChartType(Charts.ChartType.BAR)
 		.setOption('width', 1000)
 		.setOption('height', 1000)
-		.setOption('legend', { position: "none" })
+		.setOption('legend', {
+			position: "none"
+		})
 		.setOption('titlePosition', 'none')
-		.setPosition(1,4,0,0);
-	
+		.setPosition(1, 4, 0, 0);
+
 	let stackedChart = chart.asBarChart().setStacked();
 	let finishedChart = stackedChart.build();
 	sheet.insertChart(finishedChart);
@@ -58,7 +60,7 @@ function createTimeDiffSheet(sheetID, data) {
 			arr.push(row);
 		}
 
-		let sortedData = arr.sort( (a,b) =>
+		let sortedData = arr.sort((a, b) =>
 			a[0][0].toLowerCase().charCodeAt() - b[0][0].toLowerCase().charCodeAt()
 		);
 
@@ -66,7 +68,7 @@ function createTimeDiffSheet(sheetID, data) {
 	}
 
 	let sortedData = compileData();
-	sortedData.unshift(['Name','Wrap Up','Not Ready']);
+	sortedData.unshift(['Name', 'Wrap Up', 'Not Ready']);
 
 	let range = addRange(sheetID, sortedData, 1, 1, 'Time Flags');
 	range.setHorizontalAlignment('center');
@@ -77,19 +79,19 @@ function createTimeDiffSheet(sheetID, data) {
 
 function createDict(arr) {
 	let dict = {};
-	arr.forEach( (row, ind) => {
-		if(ind == 0) {
+	arr.forEach((row, ind) => {
+		if (ind == 0) {
 			return;
 		}
 		dict[row[2]] = {
-			'login':row[1],
-			'email':row[3],
-			'inCall':row[5],
-			'inWrap':row[6],
-			'inReady':row[7],
-			'inNotReady':row[8],
-			'totalCalls':row[9],
-		  };
+			'login': row[1],
+			'email': row[3],
+			'inCall': row[5],
+			'inWrap': row[6],
+			'inReady': row[7],
+			'inNotReady': row[8],
+			'totalCalls': row[9],
+		};
 	});
 	return dict;
 }
@@ -101,7 +103,7 @@ function createFirstChart(sheet) {
 	chartBuilder
 		.addRange(dataRange)
 		.setChartType(Charts.ChartType.BAR)
-		.setPosition(8,9,0,0);
+		.setPosition(8, 9, 0, 0);
 
 	let chart = chartBuilder.build();
 	sheet.insertChart(chart);
@@ -115,7 +117,7 @@ function createSecondChart(sheet) {
 	chartBuilder
 		.addRange(dataRange)
 		.setChartType(Charts.ChartType.COLUMN)
-		.setPosition(34,9,0,0);
+		.setPosition(34, 9, 0, 0);
 
 	let chart = chartBuilder.build();
 	sheet.insertChart(chart);
@@ -130,7 +132,7 @@ function setupOverviewSheet(sheetID, sortedData) {
 	sheet.setHiddenGridlines(true);
 	sheet.setName('Overview');
 
-	let topRow = ['Login','Name','Email','Wrap Up','Not Ready','Call','Ready','Total'];
+	let topRow = ['Login', 'Name', 'Email', 'Wrap Up', 'Not Ready', 'Call', 'Ready', 'Total'];
 
 	let topRange = addRange(sheetID, topRow, 1, 1, sheet.getName(), 'row');
 	topRange.setFontWeight('bold');
@@ -142,20 +144,20 @@ function setupOverviewSheet(sheetID, sortedData) {
 	let colors = createColorArr(8, sortedData.length);
 	mainRange.setBackgrounds(colors);
 
-	sheet.setColumnWidth(1,108);
-	sheet.setColumnWidth(2,177);
-	sheet.setColumnWidth(3,177);
-	sheet.setColumnWidth(4,74);
-	sheet.setColumnWidth(5,74);
-	sheet.setColumnWidth(6,74);
-	sheet.setColumnWidth(7,74);
-	sheet.setColumnWidth(8,74);
-	sheet.setColumnWidth(10,200);
-	sheet.setColumnWidth(11,70);
-	sheet.setColumnWidth(12,70);
-	sheet.setColumnWidth(14,200);
-	
-	
+	sheet.setColumnWidth(1, 108);
+	sheet.setColumnWidth(2, 177);
+	sheet.setColumnWidth(3, 177);
+	sheet.setColumnWidth(4, 74);
+	sheet.setColumnWidth(5, 74);
+	sheet.setColumnWidth(6, 74);
+	sheet.setColumnWidth(7, 74);
+	sheet.setColumnWidth(8, 74);
+	sheet.setColumnWidth(10, 200);
+	sheet.setColumnWidth(11, 70);
+	sheet.setColumnWidth(12, 70);
+	sheet.setColumnWidth(14, 200);
+
+
 	let avgRow = [
 		'',
 		'',
@@ -166,25 +168,25 @@ function setupOverviewSheet(sheetID, sortedData) {
 		`=AVERAGE(G2:G${sortedData.length})`,
 		`=AVERAGE(H2:H${sortedData.length})`,
 	];
-	let avgRowRange = addRange(sheetID, avgRow, sortedData.length+1, 1, sheet.getName(), 'row');
+	let avgRowRange = addRange(sheetID, avgRow, sortedData.length + 2, 1, sheet.getName(), 'row');
 	avgRowRange.setFontSize(11);
 	avgRowRange.setFontWeight('bold');
 	avgRowRange.setBackground(COLORS['darkGray']);
 	avgRowRange.setHorizontalAlignment('right');
 	avgRowRange.setNumberFormat('###.#');
-	
+
 	let cellsToMerge = [
-		`B${sortedData.length+1}:C${sortedData.length+1}`,
+		`B${sortedData.length+2}:C${sortedData.length+2}`,
 		'K3:L3', 'K4:L4', 'K5:L5', 'K6:L6', 'K7:L7',
 	];
 
 	let cellValues = [
-		'none','Minutes in Wrap Up',
-		'Minutes in Not Ready','Minutes in Call',
-		'Minutes in Ready','Total Calls',
+		'none', 'Minutes in Wrap Up',
+		'Minutes in Not Ready', 'Minutes in Call',
+		'Minutes in Ready', 'Total Calls',
 	];
 
-	cellsToMerge.forEach( (val, ind) => {
+	cellsToMerge.forEach((val, ind) => {
 		sheet.getRange(val).merge();
 		if (cellValues[ind] != 'none') {
 			sheet.getRange(val.split(":")[0]).setValue(cellValues[ind]);
@@ -284,14 +286,14 @@ function createToWriteArr(data) {
 			data[name]['inCall'],
 			data[name]['inReady'],
 			data[name]['totalCalls'],
-		  ];
+		];
 
 		output.push(row);
 	}
 
 	output.pop(); // the last line is always empty, so remove it before sorting
 
-	output = output.sort( (a,b) => {
+	output = output.sort((a, b) => {
 		let nA = a[1].toLowerCase().charCodeAt();
 		let nB = b[1].toLowerCase().charCodeAt();
 		return nA - nB;
@@ -299,4 +301,3 @@ function createToWriteArr(data) {
 
 	return output;
 }
-

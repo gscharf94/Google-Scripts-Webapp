@@ -1,20 +1,20 @@
 const COLORS = {
-	'darkGray':'#7c7c7c',
-	'gray':'#d7d7d7',
-	'red':'#ff2525',
-	'lightRed':'#f58080',
-	'orange':'#ffc622',
-	'yellow':'#fdf322',
-	'green':'#08bd0e',
+	'darkGray': '#7c7c7c',
+	'gray': '#d7d7d7',
+	'red': '#ff2525',
+	'lightRed': '#f58080',
+	'orange': '#ffc622',
+	'yellow': '#fdf322',
+	'green': '#08bd0e',
 	'middleGray': '#999999',
 };
 
 const LETTERS = [
-	'NULL','A','B','C','D','E',
-	'F','G','H','I','J','K',
-	'L','M','N','O','P','Q',
-	'R','S','T','U','V','W',
-	'X','Y','Z'
+	'NULL', 'A', 'B', 'C', 'D', 'E',
+	'F', 'G', 'H', 'I', 'J', 'K',
+	'L', 'M', 'N', 'O', 'P', 'Q',
+	'R', 'S', 'T', 'U', 'V', 'W',
+	'X', 'Y', 'Z'
 ];
 
 function createSpreadsheet(originalName, parentFolder, type) {
@@ -25,7 +25,9 @@ function createSpreadsheet(originalName, parentFolder, type) {
 	let resource = {
 		title: newName,
 		mimeType: MimeType.GOOGLE_SHEETS,
-		parents: [{ id: parentID }],
+		parents: [{
+			id: parentID
+		}],
 	};
 	let fileJSON = Drive.Files.insert(resource);
 	return fileJSON.id;
@@ -36,11 +38,13 @@ function createSpreadsheetNamed(folder, name) {
 
 	console.log(`folder id: ${folderID}`);
 	console.log(`folder name: ${folder.getName()}`);
-	
+
 	let resource = {
 		title: name,
 		mimeType: MimeType.GOOGLE_SHEETS,
-		parents: [{ id: folderID }],
+		parents: [{
+			id: folderID
+		}],
 	};
 
 	let fileJSON = Drive.Files.insert(resource);
@@ -52,32 +56,33 @@ function parseCSV(rawText) {
 	// turns CSV into 2d array
 	let split = rawText.split("\n");
 	let output = [];
-	split.forEach( (row) => {
+	split.forEach((row) => {
 		let splitRow = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 		output.push(splitRow);
 	});
+	output.pop();
 	return output;
 }
 
-function addRange(ssID, arr, row, col, sheetName, type="2d") {
+function addRange(ssID, arr, row, col, sheetName, type = "2d") {
 	// adds arr to a range that anchored to row, col on top left
 	// and then returns that range object
 	let ss = SpreadsheetApp.openById(ssID);
 	let sheet = ss.getSheetByName(sheetName);
-	
+
 	if (type == "2d") {
 		var sRow = row;
-		var eRow = row+arr.length-1;
+		var eRow = row + arr.length - 1;
 		var sCol = LETTERS[col];
-		var eCol = LETTERS[col+arr[0].length-1];
+		var eCol = LETTERS[col + arr[0].length - 1];
 	} else if (type == "col") {
 		var sRow = row;
-		var eRow = row+arr.length-1;
+		var eRow = row + arr.length - 1;
 		var sCol = LETTERS[col];
 		var eCol = LETTERS[col];
 
 		var newArr = [];
-		arr.forEach( (ele) => {
+		arr.forEach((ele) => {
 			newArr.push([ele]);
 		});
 
@@ -86,7 +91,7 @@ function addRange(ssID, arr, row, col, sheetName, type="2d") {
 		var sRow = row;
 		var eRow = row;
 		var sCol = LETTERS[col];
-		var eCol = LETTERS[col+arr.length-1]
+		var eCol = LETTERS[col + arr.length - 1]
 		arr = [arr];
 	}
 	let rangeText = `${sCol}${sRow}:${eCol}${eRow}`;
@@ -97,17 +102,17 @@ function addRange(ssID, arr, row, col, sheetName, type="2d") {
 }
 
 function createColorArr(width, height) {
-    let arr = [];
-    for(let i=0; i<height; i++) {
-      let row = [];
-      for(let j=0; j<width; j++) {
-        if(i%2 == 0) {
-          row.push('white');
-        } else {
-          row.push(COLORS['gray']);
-        }
-      }
-      arr.push(row);
-    }
-    return arr;
-  }
+	let arr = [];
+	for (let i = 0; i < height; i++) {
+		let row = [];
+		for (let j = 0; j < width; j++) {
+			if (i % 2 == 0) {
+				row.push('white');
+			} else {
+				row.push(COLORS['gray']);
+			}
+		}
+		arr.push(row);
+	}
+	return arr;
+}

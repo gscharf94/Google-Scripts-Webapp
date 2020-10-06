@@ -1,17 +1,4 @@
-const DEBUG = true;
 
-function log(message, obj) {
-	if (DEBUG == true) {
-		let time = new Date();
-
-		if (obj == undefined) {
-			Logger.log(`${String(time.getMinutes()).padStart(2,'0')}:${String(time.getSeconds()).padStart(2,'0')} ${message}`);
-		} else {
-			Logger.log(`${String(time.getMinutes()).padStart(2,'0')}:${String(time.getSeconds()).padStart(2,'0')} ${message} *OBJ*`);
-			Logger.log(obj);
-		}
-	}
-}
 
 function getNamesVAN(fileID, fileName) {
 	try {
