@@ -47,10 +47,18 @@ function startWeeklyReport(teams, idList, names) {
 		}
 	}
 
-	// createTimeSuccessCharts(timeSuccessData, idList[0]);
-	// createTeamStatsWeeklyReport(statsAggregate, idList[0], individualStats, teams, names);
+	createTimeSuccessCharts(timeSuccessData, idList[0]);
+	createTeamStatsWeeklyReport(statsAggregate, idList[0], individualStats, teams, names);
 	historicalWeeklyIndividualReport(individualStats, idList[0], statsAggregate);
-	return 'complete';
+
+	let parentFolder = DriveApp.getFileById(idList[0]).getParents().next();
+	let returnUrl = parentFolder.getUrl();
+
+	for (const id of idList) {
+		DriveApp.getFileById(fileID).setTrashed(true);
+	}
+
+	return returnUrl;
 }
 
 function createTeamStatsWeeklyReport(statsAggregate, childFileId, individualStats, teams, names) {
@@ -307,7 +315,143 @@ function historicalWeeklyIndividualReport(individualStats, childFileId, statsAgg
 	let ssid = createSpreadsheetNamed(parentFolder, 'Weekly Individual Stats');
 
 	let ss = SpreadsheetApp.openById(ssid);
+	let sheet = ss.getSheetByName('Sheet1');
+	sheet.setName('Avg Canv Weekly Timeline');
+	sheet.getRange('A1')
+		.setValue('Weekly Hourly Canv Report')
+		.setFontSize(14)
+		.setFontWeight('bold');
 
+	let dates = [];
+
+	let dataArr = [];
+	for (const person in individualStats) {
+		let avgHoursWorked = 0;
+		let avgTimeDiffs = 0;
+		let avgHourlyCanv = 0;
+		let avgHourlyCalls = 0;
+
+		let count = 0;
+		for (const day in individualStats[person]) {
+			avgHoursWorked += individualStats[person][day].hoursWorked;
+			avgTimeDiffs += individualStats[person][day].timeDiffs;
+			avgHourlyCanv += individualStats[person][day].hourlyCanv;
+			avgHourlyCalls += individualStats[person][day].hourlyCalls;
+
+			count++;
+
+			if (dates.indexOf(day) == -1) {
+				dates.push(day);
+			}
+		}
+
+		avgHoursWorked /= count;
+		avgTimeDiffs /= count;
+		avgHourlyCanv /= count;
+		avgHourlyCalls /= count;
+
+		dataArr.push([
+			person,
+			avgHoursWorked,
+			avgTimeDiffs,
+			avgHourlyCanv,
+			avgHourlyCalls,
+		]);
+	}
+
+	dates.sort((a, b) => {
+		let aMonth = Number(a.split("-")[0]);
+		let aDay = Number(a.split("-")[1]);
+		let bMonth = Number(b.split("-")[0]);
+		let bDay = Number(b.split("-")[1]);
+
+		let aSum = (aMonth * 30) + aDay;
+		let bSum = (bMonth * 30) + bDay;
+		return aSum - bSum;
+	})
+
+	dataArr.sort((a, b) => {
+		return b[3] - a[3];
+	});
+
+	Logger.log(dataArr);
+
+	let dataRanges = [];
+
+	sheet.setHiddenGridlines(true);
+	sheet.setColumnWidth(1, 160);
+	sheet.setColumnWidth(2, 63);
+	sheet.setColumnWidth(3, 63);
+	sheet.setColumnWidth(4, 63);
+	sheet.setColumnWidth(5, 63);
+	sheet.setColumnWidth(6, 63);
+	sheet.setColumnWidth(7, 63);
+	sheet.setColumnWidth(8, 86);
+	sheet.setColumnWidth(9, 86);
+
+	for (let i = 1; i < 120; i++) {
+		sheet.setRowHeight(i, 23);
+	}
+
+	let r = 2;
+	let c = 1;
+	let chunk;
+	const increment = 10;
+	let top = increment;
+	for (let i = 0; i < dataArr.length; i++) {
+		if (i % increment == 0) {
+			if (chunk == undefined) {
+
+			} else {
+				let range = addRange(ssid, chunk, r, c, 'Avg Canv Weekly Timeline');
+				range
+					.setNumberFormat("#.#")
+					.setVerticalAlignment('middle')
+					.setBorder(true, true, true, true, false, false)
+					.setHorizontalAlignment('center');
+
+				let headers = sheet.getRange(`A${r}:H${r}`);
+				headers
+					.setFontWeight('bold')
+					.setHorizontalAlignment('center')
+					.setBorder(true, true, true, true, false, false)
+					.setBackground(COLORS['darkGray']);
+
+				sheet.getRange(`I${r+1}`)
+					.setValue(`Top ${top}`)
+					.setFontWeight('bold')
+					.setFontSize(14)
+					.setHorizontalAlignment('center');
+
+				top += increment;
+
+				r += 12;
+			}
+			chunk = [];
+			var firstRow = [
+				'Name',
+			];
+			for (const day of dates) {
+				firstRow.push(`${day},`);
+			}
+			firstRow.push(['Weekly Avg']);
+			chunk.push(firstRow);
+		}
+
+		let name = dataArr[i][0];
+		let row = [name]
+		for (const day of dates) {
+			console.log(`name: ${name} day: ${day}`);
+			if (individualStats[name][day] == undefined) {
+				row.push(0);
+			} else {
+				let val = individualStats[name][day].hourlyCanv;
+				row.push(val);
+			}
+		}
+		row.push(dataArr[i][3]);
+		chunk.push(row);
+	}
 }
 
 function createTimeSuccessCharts(timeSuccessData, childFileId) {

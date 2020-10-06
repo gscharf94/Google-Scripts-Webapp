@@ -154,9 +154,8 @@
 	}
 
 	function processVanWeeklyFinish(output) {
-		console.log('GAS finished..');
-		console.log(output);
-		// document.getElementById('fileList').innerHTML = output;
+		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated folder..</h2></a>`;
+		document.getElementById('fileList').innerHTML = "";
 	}
 
 	function processVanDailyFinish(output) {
