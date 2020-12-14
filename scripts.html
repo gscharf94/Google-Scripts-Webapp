@@ -150,11 +150,13 @@
 	}
 
 	function processVanWeeklyAction() {
+		document.getElementById('uiController').innerHTML =
+			'<div class="loadingContainer"><div class="lds-dual-ring"></div>Loading, this can take a few minutes..</div>';
 		google.script.run.withSuccessHandler(processVanWeeklyFinish).startWeeklyReport(teams, globalFileIdList, globalNames);
 	}
 
 	function processVanWeeklyFinish(output) {
-		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to generated folder..</h2></a>`;
+		document.getElementById('emptyThing').innerHTML = `<a href="${output}"><h2>Link to folder..</h2></a>`;
 		document.getElementById('fileList').innerHTML = "";
 	}
 

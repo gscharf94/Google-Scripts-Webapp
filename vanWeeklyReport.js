@@ -55,7 +55,7 @@ function startWeeklyReport(teams, idList, names) {
 	let returnUrl = parentFolder.getUrl();
 
 	for (const id of idList) {
-		DriveApp.getFileById(fileID).setTrashed(true);
+		DriveApp.getFileById(id).setTrashed(true);
 	}
 
 	return returnUrl;
